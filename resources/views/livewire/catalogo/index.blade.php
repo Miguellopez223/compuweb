@@ -121,12 +121,13 @@
                     <div class="group bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-900/10 transition-all duration-200">
 
                         {{-- Image --}}
-                        <a href="{{ route('catalogo.producto', [$slug, $p['id']]) }}" class="block">
+                        <a href="{{ route('catalogo.producto', [$slug, $p['id']]) }}"
+                           class="block aspect-square overflow-hidden bg-zinc-800">
                             @if($p['imagen_url'])
                                 <img src="{{ $p['imagen_url'] }}" alt="{{ $p['nombre'] }}"
-                                     class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300">
+                                     class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-2">
                             @else
-                                <div class="w-full h-44 bg-zinc-800 flex items-center justify-center">
+                                <div class="w-full h-full flex items-center justify-center">
                                     <svg class="w-14 h-14 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                 </div>
                             @endif

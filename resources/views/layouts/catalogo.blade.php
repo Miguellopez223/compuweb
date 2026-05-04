@@ -114,15 +114,12 @@
 
             <template x-for="item in $store.cart.items" :key="item.id">
                 <div class="flex gap-3 bg-zinc-800 rounded-xl p-3 border border-zinc-700/50">
-                    <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-700">
-                        <template x-if="item.imagen_url">
-                            <img :src="item.imagen_url" :alt="item.nombre" class="w-full h-full object-cover">
-                        </template>
-                        <template x-if="!item.imagen_url">
-                            <div class="w-full h-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                            </div>
-                        </template>
+                    <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-700 flex items-center justify-center">
+                        <img :src="item.imagen_url" :alt="item.nombre"
+                             class="w-full h-full object-contain p-1"
+                             x-show="item.imagen_url"
+                             x-on:error="$el.style.display='none'">
+                        <svg x-show="!item.imagen_url" class="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="font-semibold text-white text-sm leading-tight truncate" x-text="item.nombre"></p>

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Attributes\Validate;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
@@ -35,8 +34,9 @@ class Index extends Component
     public int $stock_minimo = 5;
     public string $estado = 'Disponible';
     public ?int $categoria_id = null;
-    public $imagen = null;          // file temporal (Livewire TemporaryUploadedFile)
-    public ?string $imagenActual = null; // path almacenado en BD
+    public $imagen = null;
+    public ?string $imagenActual = null;
+    public string $imagenUrl = '';  // URL externa de imagen
 
     protected function rules(): array
     {
@@ -50,6 +50,7 @@ class Index extends Component
             'estado'       => 'required|in:Disponible,Agotado',
             'categoria_id' => 'required|exists:categorias,id',
             'imagen'       => 'nullable|image|max:2048',
+            'imagenUrl'    => 'nullable|url',
         ];
     }
 
@@ -61,6 +62,7 @@ class Index extends Component
         'categoria_id.required' => 'Selecciona una categoría.',
         'imagen.image'          => 'El archivo debe ser una imagen.',
         'imagen.max'            => 'La imagen no puede superar 2 MB.',
+        'imagenUrl.url'         => 'Debe ser una URL válida (https://...).',
     ];
 
     public function updatingSearch(): void { $this->resetPage(); }
@@ -69,7 +71,7 @@ class Index extends Component
 
     public function openCreate(): void
     {
-        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'editingId']);
+        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId']);
         $this->stock = 0;
         $this->stock_minimo = 5;
         $this->estado = 'Disponible';
@@ -89,28 +91,42 @@ class Index extends Component
         $this->stock_minimo = $p->stock_minimo;
         $this->estado       = $p->estado;
         $this->categoria_id = $p->categoria_id;
-        $this->imagenActual = $p->imagen;
         $this->imagen       = null;
-        $this->showModal    = true;
+
+        // Si la imagen guardada es una URL externa, cargarla en imagenUrl
+        if ($p->imagen && str_starts_with($p->imagen, 'http')) {
+            $this->imagenActual = null;
+            $this->imagenUrl    = $p->imagen;
+        } else {
+            $this->imagenActual = $p->imagen;
+            $this->imagenUrl    = '';
+        }
+
+        $this->showModal = true;
     }
 
     public function removeImagen(): void
     {
-        $this->imagen = null;
+        $this->imagen       = null;
+        $this->imagenActual = null;
+        $this->imagenUrl    = '';
     }
 
     public function save(): void
     {
         $this->validate();
 
-        $imagenPath = $this->imagenActual;
-
+        // Prioridad: archivo subido > URL > imagen actual
         if ($this->imagen) {
-            // Eliminar imagen anterior si existe
-            if ($imagenPath) {
-                Storage::disk('public')->delete($imagenPath);
+            // Eliminar archivo anterior si era un path local
+            if ($this->imagenActual && !str_starts_with($this->imagenActual, 'http')) {
+                Storage::disk('public')->delete($this->imagenActual);
             }
             $imagenPath = $this->imagen->store('productos', 'public');
+        } elseif ($this->imagenUrl) {
+            $imagenPath = $this->imagenUrl;
+        } else {
+            $imagenPath = $this->imagenActual;
         }
 
         $data = [
@@ -135,7 +151,7 @@ class Index extends Component
         }
 
         $this->showModal = false;
-        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'editingId']);
+        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId']);
         $this->stock = 0;
         $this->stock_minimo = 5;
         $this->estado = 'Disponible';
@@ -151,7 +167,8 @@ class Index extends Component
     public function delete(): void
     {
         $producto = Producto::findOrFail($this->deleteId);
-        if ($producto->imagen) {
+        // Solo borrar del disco si es un archivo local (no URL)
+        if ($producto->imagen && !str_starts_with($producto->imagen, 'http')) {
             Storage::disk('public')->delete($producto->imagen);
         }
         $producto->delete();
@@ -175,5 +192,13 @@ class Index extends Component
         $categorias = Categoria::all();
 
         return view('livewire.productos.index', compact('productos', 'categorias'));
+    }
+
+    // Helper para generar la URL de display de la imagen
+    public function imagenDisplayUrl(?string $imagen): ?string
+    {
+        if (!$imagen) return null;
+        if (str_starts_with($imagen, 'http')) return $imagen;
+        return Storage::url($imagen);
     }
 }

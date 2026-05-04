@@ -26,10 +26,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
 
         {{-- Image --}}
-        <div class="rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-square flex items-center justify-center">
+        <div class="rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-square flex items-center justify-center p-4">
             @if(!empty($producto['imagen_url']))
                 <img src="{{ $producto['imagen_url'] }}" alt="{{ $producto['nombre'] }}"
-                     class="w-full h-full object-cover">
+                     class="w-full h-full object-contain">
             @else
                 <svg class="w-24 h-24 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
             @endif
