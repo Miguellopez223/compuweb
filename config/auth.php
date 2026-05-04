@@ -43,7 +43,7 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-            'driver' => 'passport',
+            'driver' => class_exists(\Laravel\Passport\Passport::class) ? 'passport' : 'session',
             'provider' => 'users',
         ],
     ],
