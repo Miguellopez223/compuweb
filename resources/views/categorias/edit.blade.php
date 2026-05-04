@@ -51,4 +51,46 @@
             </div>
         </div>
     </div>
+</x-app-layout><x-app-layout>
+    <h1 class="page-title">Editar Categoría</h1>
+    <p class="page-subtitle">Actualice la información de la categoría seleccionada.</p>
+
+    <div class="card">
+        <form action="{{ route('categorias.update', $categoria) }}" method="POST">
+            @csrf
+            @method('PUT')
+
+            <div class="form-group">
+                <label>NOMBRE DE LA CATEGORÍA *</label>
+                <input type="text" name="nombre" class="form-control"
+                       value="{{ old('nombre', $categoria->nombre) }}">
+
+                @error('nombre')
+                    <p style="color:#dc2626; font-weight:700; margin-top:5px;">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label>DESCRIPCIÓN</label>
+                <textarea name="descripcion" class="form-control" rows="4">{{ old('descripcion', $categoria->descripcion) }}</textarea>
+
+                @error('descripcion')
+                    <p style="color:#dc2626; font-weight:700; margin-top:5px;">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label>ESTADO *</label>
+                <select name="estado" class="form-control">
+                    <option value="1" {{ old('estado', $categoria->estado) == '1' ? 'selected' : '' }}>Activo</option>
+                    <option value="0" {{ old('estado', $categoria->estado) == '0' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <a href="{{ route('categorias.index') }}" class="btn btn-secondary">← Cancelar</a>
+                <button type="submit" class="btn btn-primary">Actualizar Categoría</button>
+            </div>
+        </form>
+    </div>
 </x-app-layout>

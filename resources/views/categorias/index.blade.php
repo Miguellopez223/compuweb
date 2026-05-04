@@ -79,4 +79,84 @@
 
         </div>
     </div>
+</x-app-layout><x-app-layout>
+    <h1 class="page-title">Categorías</h1>
+    <p class="page-subtitle">Gestiona los grupos o categorías de productos del inventario.</p>
+
+    @if (session('success'))
+        <div class="card" style="margin-bottom:20px; background:#dcfce7; color:#15803d; font-weight:700;">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div>
+            <a href="{{ route('dashboard') }}" class="btn btn-secondary">← Volver al Dashboard</a>
+        </div>
+
+        <div>
+            <a href="{{ route('categorias.create') }}" class="btn btn-primary">+ Nueva Categoría</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>CÓDIGO</th>
+                    <th>NOMBRE</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>ESTADO</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @forelse ($categorias as $categoria)
+                    <tr>
+                        <td>CAT{{ str_pad($categoria->id, 3, '0', STR_PAD_LEFT) }}</td>
+                        <td>{{ $categoria->nombre }}</td>
+                        <td>{{ $categoria->descripcion ?? 'Sin descripción' }}</td>
+                        <td>
+                            @if ($categoria->estado)
+                                <span class="badge badge-green">Activo</span>
+                            @else
+                                <span class="badge badge-red">Inactivo</span>
+                            @endif
+                        </td>
+                        <td>
+                            <a href="{{ route('categorias.show', $categoria) }}" style="color:#2f7484; font-weight:800;">
+                                Ver
+                            </a>
+                            |
+                            <a href="{{ route('categorias.edit', $categoria) }}" style="color:#ca8a04; font-weight:800;">
+                                Editar
+                            </a>
+                            |
+                            <form action="{{ route('categorias.destroy', $categoria) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit"
+                                    onclick="return confirm('¿Seguro que deseas eliminar esta categoría?')"
+                                    style="border:none; background:none; color:#dc2626; font-weight:800; cursor:pointer;">
+                                    Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:35px;">
+                            No hay categorías registradas.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <div style="margin-top:20px;">
+            {{ $categorias->links() }}
+        </div>
+    </div>
 </x-app-layout>

@@ -27,10 +27,14 @@ class CategoriaController extends Controller
             'estado' => 'required|boolean',
         ]);
 
-        Categoria::create($request->all());
+        Categoria::create([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'estado' => $request->estado,
+        ]);
 
         return redirect()->route('categorias.index')
-            ->with('success', 'Categoría creada correctamente.');
+            ->with('success', 'Categoría registrada correctamente.');
     }
 
     public function show(Categoria $categoria)
@@ -51,7 +55,11 @@ class CategoriaController extends Controller
             'estado' => 'required|boolean',
         ]);
 
-        $categoria->update($request->all());
+        $categoria->update([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'estado' => $request->estado,
+        ]);
 
         return redirect()->route('categorias.index')
             ->with('success', 'Categoría actualizada correctamente.');

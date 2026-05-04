@@ -1,33 +1,44 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Detalle de Categoría
-        </h2>
-    </x-slot>
+    <h1 class="page-title">Detalle de Categoría</h1>
+    <p class="page-subtitle">Información completa de la categoría seleccionada.</p>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+    <div class="card">
+        <table class="table">
+            <tr>
+                <th>CÓDIGO</th>
+                <td>CAT{{ str_pad($categoria->id, 3, '0', STR_PAD_LEFT) }}</td>
+            </tr>
 
-                <p><strong>ID:</strong> {{ $categoria->id }}</p>
-                <p><strong>Nombre:</strong> {{ $categoria->nombre }}</p>
-                <p><strong>Descripción:</strong> {{ $categoria->descripcion }}</p>
-                <p>
-                    <strong>Estado:</strong>
+            <tr>
+                <th>NOMBRE</th>
+                <td>{{ $categoria->nombre }}</td>
+            </tr>
+
+            <tr>
+                <th>DESCRIPCIÓN</th>
+                <td>{{ $categoria->descripcion ?? 'Sin descripción' }}</td>
+            </tr>
+
+            <tr>
+                <th>ESTADO</th>
+                <td>
                     @if ($categoria->estado)
-                        Activo
+                        <span class="badge badge-green">Activo</span>
                     @else
-                        Inactivo
+                        <span class="badge badge-red">Inactivo</span>
                     @endif
-                </p>
+                </td>
+            </tr>
 
-                <div class="mt-4">
-                    <a href="{{ route('categorias.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">
-                        Volver
-                    </a>
-                </div>
+            <tr>
+                <th>FECHA DE REGISTRO</th>
+                <td>{{ $categoria->created_at->format('d/m/Y H:i') }}</td>
+            </tr>
+        </table>
 
-            </div>
+        <div class="actions">
+            <a href="{{ route('categorias.index') }}" class="btn btn-secondary">← Volver</a>
+            <a href="{{ route('categorias.edit', $categoria) }}" class="btn btn-primary">Editar Categoría</a>
         </div>
     </div>
 </x-app-layout>

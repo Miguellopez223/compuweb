@@ -1,80 +1,79 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COMPUWEB SYSTEM</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             background: #f4f7f9;
+            color: #1f2937;
             font-family: Arial, Helvetica, sans-serif;
         }
 
         .app-container {
             display: flex;
             min-height: 100vh;
+            background: #f4f7f9;
         }
 
+        /* SIDEBAR */
         .sidebar {
             width: 250px;
-            background: #2f7484;
+            background: #31798a;
             color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
         }
 
         .sidebar-header {
-            padding: 28px 24px;
+            padding: 30px 25px;
         }
 
         .sidebar-header h1 {
-            font-size: 22px;
-            letter-spacing: 3px;
-            font-weight: 800;
+            margin: 0;
+            font-size: 25px;
+            letter-spacing: 4px;
             line-height: 1.2;
+            font-weight: 900;
         }
 
-        .sidebar-header span {
-            display: block;
-            margin-top: 8px;
+        .sidebar-header p {
             font-size: 12px;
             font-weight: bold;
-            opacity: 0.8;
-        }
-
-        .sidebar-menu {
-            margin-top: 10px;
+            opacity: 0.85;
+            margin-top: 12px;
         }
 
         .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #dceff3;
+            display: block;
+            padding: 18px 25px;
+            color: #e8f6f8;
             text-decoration: none;
-            padding: 18px 24px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.25);
-            font-weight: 700;
             font-size: 15px;
+            font-weight: 700;
+            border-top: 1px dashed rgba(255,255,255,0.25);
         }
 
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.13);
-            color: white;
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.13);
         }
 
         .sidebar-bottom {
-            padding: 22px;
+            padding: 25px;
         }
 
         .sale-button {
@@ -83,40 +82,67 @@
             background: #008a3d;
             color: white;
             text-align: center;
-            padding: 15px;
+            padding: 14px;
             border-radius: 5px;
-            font-weight: 800;
             text-decoration: none;
+            font-weight: 800;
         }
 
+        .sale-button:hover {
+            background: #007235;
+        }
+
+        /* MAIN */
         .main-content {
             margin-left: 250px;
             width: calc(100% - 250px);
+            min-height: 100vh;
+            background: #f4f7f9;
         }
 
         .topbar {
-            height: 58px;
+            height: 65px;
             background: white;
             border-bottom: 1px solid #e5e7eb;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 32px;
+            padding: 0 35px;
         }
 
         .topbar-title {
-            font-weight: 800;
-            color: #2f7484;
+            font-size: 17px;
+            font-weight: 900;
+            color: #31798a;
             letter-spacing: 1px;
         }
 
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .search-box {
-            width: 300px;
-            background: #f3f6f8;
-            border: 1px solid #d9e1e5;
+            width: 320px;
+            border: 1px solid #d5dde2;
+            background: #f6f8fa;
+            padding: 12px 16px;
             border-radius: 10px;
-            padding: 10px 14px;
-            color: #6b7280;
+            color: #1f2937;
+        }
+
+        .logout-button {
+            background: none;
+            border: none;
+            color: #1f2937;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .logout-button:hover {
+            color: #dc2626;
         }
 
         .page-content {
@@ -125,24 +151,27 @@
 
         .page-title {
             font-size: 30px;
-            font-weight: 800;
+            font-weight: 900;
+            margin: 0 0 6px 0;
             color: #1f2937;
-            margin-bottom: 5px;
         }
 
         .page-subtitle {
-            color: #6b7280;
-            margin-bottom: 30px;
+            margin: 0 0 28px 0;
+            color: #64748b;
+            font-size: 15px;
         }
 
+        /* CARD GENERAL */
         .card {
             background: white;
-            border-radius: 8px;
             border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 28px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            padding: 25px;
         }
 
+        /* DASHBOARD */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -153,21 +182,21 @@
         .stat-card {
             background: white;
             border: 1px solid #dce3e8;
-            border-top: 5px solid #2f7484;
-            border-radius: 4px;
+            border-top: 5px solid #31798a;
+            border-radius: 5px;
             text-align: center;
-            padding: 25px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            padding: 28px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
         .stat-card.alert {
             background: #ffd7d5;
             color: #b91c1c;
-            border-top-color: #ffb0ad;
+            border-top-color: #ff9f9b;
         }
 
         .stat-number {
-            font-size: 34px;
+            font-size: 36px;
             font-weight: 900;
             color: #111827;
         }
@@ -179,57 +208,12 @@
         .stat-label {
             margin-top: 8px;
             font-size: 13px;
-            font-weight: 800;
-            color: #6b7280;
+            font-weight: 900;
+            color: #64748b;
+            text-transform: uppercase;
         }
 
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        .table th {
-            background: #f0f3f5;
-            padding: 15px;
-            font-size: 13px;
-            color: #536471;
-            text-align: left;
-        }
-
-        .table td {
-            padding: 15px;
-            border-bottom: 1px solid #edf0f2;
-            color: #374151;
-            font-weight: 600;
-        }
-
-        .btn {
-            display: inline-block;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: #008a3d;
-            color: white;
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #2f7484;
-            border: 2px solid #9cb7c0;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-
+        /* FORMS */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -242,35 +226,111 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
             font-size: 13px;
-            font-weight: 800;
-            color: #536471;
+            color: #475569;
+            font-weight: 900;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
         .form-control {
             width: 100%;
             border: 1px solid #cfd8de;
-            background: #f8fafb;
+            background: #f8fafc;
             padding: 15px;
-            border-radius: 2px;
+            border-radius: 3px;
             font-size: 15px;
+            color: #1f2937;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #31798a;
+            box-shadow: 0 0 0 2px rgba(49, 121, 138, 0.15);
         }
 
         .actions {
             display: flex;
             justify-content: flex-end;
-            gap: 14px;
+            gap: 15px;
             margin-top: 28px;
             padding-top: 25px;
             border-top: 1px solid #e5e7eb;
         }
 
+        /* BUTTONS */
+        .btn {
+            display: inline-block;
+            padding: 13px 22px;
+            border-radius: 4px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .btn-primary {
+            background: #008a3d;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #007235;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #31798a;
+            border: 2px solid #9cb7c0;
+        }
+
+        .btn-secondary:hover {
+            background: #eef6f8;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        /* TABLES */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f1f5f9;
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .table td {
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* BADGES */
         .badge {
             padding: 7px 13px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 900;
+            display: inline-block;
         }
 
         .badge-green {
@@ -288,41 +348,45 @@
             color: #a16207;
         }
 
-        .user-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 13px;
-        }
+        /* RESPONSIVE SIMPLE */
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 210px;
+            }
 
-        .user-avatar {
-            width: 38px;
-            height: 38px;
-            background: #0f9f6e;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
+            .main-content {
+                margin-left: 210px;
+                width: calc(100% - 210px);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 220px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="app-container">
-
         <aside class="sidebar">
             <div>
                 <div class="sidebar-header">
                     <h1>COMPUWEB<br>SYSTEM</h1>
-                    <span>ENTERPRISE MANAGEMENT</span>
+                    <p>ENTERPRISE MANAGEMENT</p>
                 </div>
 
                 <nav class="sidebar-menu">
                     <a href="{{ route('dashboard') }}">▦ Dashboard</a>
                     <a href="{{ route('productos.create') }}">✚ New Product</a>
-                    <a href="#">↔ Movements</a>
+                    <a href="{{ route('movimientos.index') }}">↔ Movements</a>
                     <a href="{{ route('productos.index') }}">▣ Inventory</a>
                     <a href="#">▥ Reports</a>
                     <a href="#">▱ Conversational Commerce</a>
@@ -333,14 +397,6 @@
 
             <div class="sidebar-bottom">
                 <a href="#" class="sale-button">Register Sale</a>
-
-                <div style="margin-top: 25px;" class="user-box">
-                    <div class="user-avatar">US</div>
-                    <div>
-                        <strong>{{ Auth::user()->name ?? 'Admin User' }}</strong><br>
-                        <small>{{ Auth::user()->email ?? 'admin@compuweb.com' }}</small>
-                    </div>
-                </div>
             </div>
         </aside>
 
@@ -348,14 +404,12 @@
             <header class="topbar">
                 <div class="topbar-title">COMPUWEB SYSTEM</div>
 
-                <div style="display:flex; align-items:center; gap:20px;">
-                    <input class="search-box" type="text" placeholder="Search...">
+                <div class="topbar-right">
+                    <input type="text" class="search-box" placeholder="Search...">
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button style="border:none; background:none; font-weight:700; cursor:pointer;">
-                            Logout
-                        </button>
+                        <button type="submit" class="logout-button">Logout</button>
                     </form>
                 </div>
             </header>
@@ -364,7 +418,6 @@
                 {{ $slot }}
             </section>
         </main>
-
     </div>
 </body>
 </html>
