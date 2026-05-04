@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Dell/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/cdcf0309-2ac2-4168-992a-a5fc1fbe8258/01da8d60-96fe-47e5-9ef6-f7c13e026192/skills/docx/**)",
+      "Bash(pandoc \"C:\\\\Users\\\\Dell\\\\Documents\\\\UPB\\\\5to Semestre\\\\Practicas de Induccion Profesional\\\\Tareas\\\\Documento 3 de Mayo - Actualizado.docx\" -o output.md --wrap=none)",
+      "Bash(python \"C:\\\\Users\\\\Dell\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\cdcf0309-2ac2-4168-992a-a5fc1fbe8258\\\\01da8d60-96fe-47e5-9ef6-f7c13e026192\\\\skills\\\\docx\\\\scripts\\\\office\\\\unpack.py\" \"C:\\\\Users\\\\Dell\\\\Documents\\\\UPB\\\\5to Semestre\\\\Practicas de Induccion Profesional\\\\Tareas\\\\Documento 3 de Mayo - Actualizado.docx\" \"C:\\\\Users\\\\Dell\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\cdcf0309-2ac2-4168-992a-a5fc1fbe8258\\\\01da8d60-96fe-47e5-9ef6-f7c13e026192\\\\skills\\\\docx\\\\unpacked\")",
+      "Bash(php artisan *)"
+    ]
+  }
+}
