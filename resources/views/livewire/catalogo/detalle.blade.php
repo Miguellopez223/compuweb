@@ -87,8 +87,7 @@
                 <button @click="$store.cart.add({
                             id: {{ $producto['id'] }},
                             nombre: {{ json_encode($producto['nombre']) }},
-                            precio: {{ $producto['precio'] }},
-                            imagen_url: {{ json_encode($producto['imagen_url'] ?? null) }}
+                            precio: {{ $producto['precio'] }}
                         })"
                         class="flex items-center justify-center gap-3 w-full py-3.5 bg-zinc-800 hover:bg-indigo-600 border border-zinc-700 hover:border-indigo-600 text-zinc-200 hover:text-white font-bold rounded-xl transition-all text-base">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>

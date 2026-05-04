@@ -27,8 +27,8 @@ class Index extends Component
 
     public function mount(string $slug): void
     {
-        $this->slug   = $slug;
-        $base         = rtrim(env('API_URL', 'http://compuweb-api.test'), '/');
+        $this->slug = $slug;
+        $base       = rtrim(env('API_URL', 'http://compuweb-api.test'), '/');
 
         try {
             $tRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}");
@@ -37,11 +37,23 @@ class Index extends Component
                 return;
             }
             $this->tienda = $tRes->json();
-
-            $cRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}/categorias");
-            $this->categorias = $cRes->successful() ? $cRes->json() : [];
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            \Log::error("Catalogo: error cargando tienda [{$slug}]: " . $e->getMessage());
             $this->apiError = true;
+            return;
+        }
+
+        try {
+            $cRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}/categorias");
+            if ($cRes->successful()) {
+                $this->categorias = $cRes->json();
+            } else {
+                \Log::warning("Catalogo: /categorias devolvió {$cRes->status()} para [{$slug}]");
+                $this->categorias = [];
+            }
+        } catch (\Exception $e) {
+            \Log::error("Catalogo: error cargando categorias [{$slug}]: " . $e->getMessage());
+            $this->categorias = [];
         }
     }
 

@@ -113,30 +113,27 @@
             </template>
 
             <template x-for="item in $store.cart.items" :key="item.id">
-                <div class="flex gap-3 bg-zinc-800 rounded-xl p-3 border border-zinc-700/50">
-                    <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-700 flex items-center justify-center">
-                        <img :src="item.imagen_url" :alt="item.nombre"
-                             class="w-full h-full object-contain p-1"
-                             x-show="item.imagen_url"
-                             x-on:error="$el.style.display='none'">
-                        <svg x-show="!item.imagen_url" class="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <div class="bg-zinc-800/60 border border-zinc-700/50 rounded-xl p-3">
+                    <div class="flex items-start justify-between gap-2 mb-2.5">
+                        <p class="font-semibold text-white text-sm leading-snug" x-text="item.nombre"></p>
+                        <button @click="$store.cart.remove(item.id)"
+                                class="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition mt-0.5">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-white text-sm leading-tight truncate" x-text="item.nombre"></p>
-                        <p class="text-amber-400 font-bold text-xs mt-0.5" x-text="'Bs. ' + parseFloat(item.precio).toFixed(2) + ' c/u'"></p>
-                        <div class="flex items-center gap-1.5 mt-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
                             <button @click="$store.cart.decrement(item.id)"
-                                    class="w-6 h-6 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center text-sm leading-none transition">−</button>
-                            <span class="text-white font-bold text-sm w-5 text-center" x-text="item.cantidad"></span>
+                                    class="w-7 h-7 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center text-base leading-none transition font-bold">−</button>
+                            <span class="text-white font-bold text-sm w-6 text-center tabular-nums" x-text="item.cantidad"></span>
                             <button @click="$store.cart.increment(item.id)"
-                                    class="w-6 h-6 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center text-sm leading-none transition">+</button>
-                            <span class="ml-auto text-zinc-300 font-bold text-sm"
-                                  x-text="'Bs. ' + (parseFloat(item.precio) * item.cantidad).toFixed(2)"></span>
+                                    class="w-7 h-7 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center text-base leading-none transition font-bold">+</button>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white font-extrabold text-sm tabular-nums" x-text="'Bs. ' + (parseFloat(item.precio) * item.cantidad).toFixed(2)"></p>
+                            <p class="text-zinc-600 text-[10px] tabular-nums" x-text="'Bs. ' + parseFloat(item.precio).toFixed(2) + ' c/u'"></p>
                         </div>
                     </div>
-                    <button @click="$store.cart.remove(item.id)" class="text-zinc-600 hover:text-red-400 transition self-start mt-0.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
                 </div>
             </template>
         </div>
