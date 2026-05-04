@@ -9,7 +9,7 @@ class Producto extends Model
 {
     protected $fillable = [
         'tienda_id', 'categoria_id', 'nombre', 'sku',
-        'descripcion', 'precio', 'stock', 'stock_minimo', 'estado',
+        'descripcion', 'imagen', 'precio', 'stock', 'stock_minimo', 'estado',
     ];
 
     protected $casts = [

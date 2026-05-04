@@ -52,22 +52,33 @@
             {{-- Product grid --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 @forelse($productos as $p)
-                <div class="bg-white rounded-xl border border-slate-200 p-4 hover:border-indigo-300 hover:shadow-md transition cursor-pointer"
+                <div class="bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition cursor-pointer overflow-hidden"
                      wire:click="agregarProducto({{ $p->id }})">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                        <p class="font-semibold text-slate-800 text-sm leading-tight">{{ $p->nombre }}</p>
-                        <span class="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0">{{ $p->categoria->nombre ?? '' }}</span>
-                    </div>
-                    @if($p->sku)
-                        <p class="text-xs text-slate-400 font-mono mb-2">{{ $p->sku }}</p>
+                    {{-- Imagen del producto --}}
+                    @if($p->imagen)
+                        <img src="{{ Storage::url($p->imagen) }}" alt="{{ $p->nombre }}"
+                             class="w-full h-32 object-cover">
+                    @else
+                        <div class="w-full h-32 bg-slate-100 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
                     @endif
-                    <div class="flex items-center justify-between mt-3">
-                        <span class="text-lg font-bold text-indigo-600">Bs. {{ number_format($p->precio, 2) }}</span>
-                        <span class="text-xs text-slate-500">{{ $p->stock }} en stock</span>
+                    <div class="p-3">
+                        <div class="flex items-start justify-between gap-2 mb-1">
+                            <p class="font-semibold text-slate-800 text-sm leading-tight">{{ $p->nombre }}</p>
+                            <span class="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0">{{ $p->categoria->nombre ?? '' }}</span>
+                        </div>
+                        @if($p->sku)
+                            <p class="text-xs text-slate-400 font-mono mb-1">{{ $p->sku }}</p>
+                        @endif
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-base font-bold text-indigo-600">Bs. {{ number_format($p->precio, 2) }}</span>
+                            <span class="text-xs text-slate-500">{{ $p->stock }} uds</span>
+                        </div>
+                        <button class="mt-2 w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold rounded-lg transition">
+                            + Agregar
+                        </button>
                     </div>
-                    <button class="mt-3 w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold rounded-lg transition">
-                        + Agregar
-                    </button>
                 </div>
                 @empty
                 <div class="col-span-full bg-white rounded-xl border border-slate-200 py-12 text-center text-slate-400">
