@@ -10,6 +10,10 @@ use App\Livewire\Ventas\Registrar as VentasRegistrar;
 use App\Livewire\Usuarios\Index as UsuariosIndex;
 use Illuminate\Support\Facades\Route;
 
+// Catálogo público
+Route::get('/catalogo/{slug}', \App\Livewire\Catalogo\Index::class)->name('catalogo');
+Route::get('/catalogo/{slug}/producto/{id}', \App\Livewire\Catalogo\Detalle::class)->name('catalogo.producto');
+
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 Route::post('/logout', function () {

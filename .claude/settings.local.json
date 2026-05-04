@@ -6,7 +6,10 @@
       "Bash(python \"C:\\\\Users\\\\Dell\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\cdcf0309-2ac2-4168-992a-a5fc1fbe8258\\\\01da8d60-96fe-47e5-9ef6-f7c13e026192\\\\skills\\\\docx\\\\scripts\\\\office\\\\unpack.py\" \"C:\\\\Users\\\\Dell\\\\Documents\\\\UPB\\\\5to Semestre\\\\Practicas de Induccion Profesional\\\\Tareas\\\\Documento 3 de Mayo - Actualizado.docx\" \"C:\\\\Users\\\\Dell\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\cdcf0309-2ac2-4168-992a-a5fc1fbe8258\\\\01da8d60-96fe-47e5-9ef6-f7c13e026192\\\\skills\\\\docx\\\\unpacked\")",
       "Bash(php artisan *)",
       "Bash(composer require *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(composer create-project *)",
+      "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-private.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-private.key)",
+      "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-public.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-public.key)"
     ]
   }
 }
