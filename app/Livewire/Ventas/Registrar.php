@@ -22,19 +22,27 @@ class Registrar extends Component
 
     public string $cliente_nombre = '';
     public string $cliente_telefono = '';
+    public string $cliente_email = '';
+    public string $cliente_direccion = '';
+    public string $cliente_nit = '';
     public string $metodo_pago = 'efectivo';
 
+    public bool $showCheckout = false;
     public bool $showSuccess = false;
     public ?int $ventaId = null;
 
     protected $rules = [
-        'cliente_nombre' => 'required|string|max:255',
-        'cliente_telefono' => 'nullable|string|max:20',
-        'metodo_pago'    => 'required|in:efectivo,qr,transferencia',
+        'cliente_nombre'    => 'required|string|max:255',
+        'cliente_telefono'  => 'nullable|string|max:20',
+        'cliente_email'     => 'nullable|email|max:255',
+        'cliente_direccion' => 'nullable|string|max:500',
+        'cliente_nit'       => 'nullable|string|max:20',
+        'metodo_pago'       => 'required|in:efectivo,qr,transferencia',
     ];
 
     protected $messages = [
         'cliente_nombre.required' => 'El nombre del cliente es obligatorio.',
+        'cliente_email.email'     => 'El correo electrónico no es válido.',
     ];
 
     public function agregarProducto(int $productoId): void
@@ -100,6 +108,21 @@ class Registrar extends Component
         return array_sum(array_column($this->carrito, 'subtotal'));
     }
 
+    public function abrirCheckout(): void
+    {
+        if (empty($this->carrito)) {
+            session()->flash('error', 'Agrega al menos un producto al carrito.');
+            return;
+        }
+
+        $this->showCheckout = true;
+    }
+
+    public function cerrarCheckout(): void
+    {
+        $this->showCheckout = false;
+    }
+
     public function confirmarVenta(): void
     {
         if (empty($this->carrito)) {
@@ -110,14 +133,20 @@ class Registrar extends Component
         $this->validate();
 
         DB::transaction(function () {
+            $codigo = 'VTA-' . auth()->user()->tienda_id . now()->format('ymdHis');
+
             $venta = Venta::create([
-                'tienda_id'        => auth()->user()->tienda_id,
-                'vendedor_id'      => auth()->id(),
-                'cliente_nombre'   => $this->cliente_nombre,
-                'cliente_telefono' => $this->cliente_telefono ?: null,
-                'total'            => $this->getTotal(),
-                'metodo_pago'      => $this->metodo_pago,
-                'estado_venta'     => 'Completada',
+                'tienda_id'          => auth()->user()->tienda_id,
+                'vendedor_id'        => auth()->id(),
+                'codigo_pedido'      => $codigo,
+                'cliente_nombre'     => $this->cliente_nombre,
+                'cliente_telefono'   => $this->cliente_telefono ?: null,
+                'cliente_email'      => $this->cliente_email ?: null,
+                'cliente_direccion'  => $this->cliente_direccion ?: null,
+                'cliente_nit'        => $this->cliente_nit ?: null,
+                'total'              => $this->getTotal(),
+                'metodo_pago'        => $this->metodo_pago,
+                'estado_venta'       => 'Completada',
             ]);
 
             foreach ($this->carrito as $item) {
@@ -151,8 +180,9 @@ class Registrar extends Component
         });
 
         $this->carrito = [];
-        $this->reset(['cliente_nombre', 'cliente_telefono', 'metodo_pago', 'busqueda']);
+        $this->reset(['cliente_nombre', 'cliente_telefono', 'cliente_email', 'cliente_direccion', 'cliente_nit', 'metodo_pago', 'busqueda']);
         $this->metodo_pago = 'efectivo';
+        $this->showCheckout = false;
         $this->showSuccess = true;
     }
 

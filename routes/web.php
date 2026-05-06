@@ -8,6 +8,7 @@ use App\Livewire\Movimientos\Index as MovimientosIndex;
 use App\Livewire\Ventas\Index as VentasIndex;
 use App\Livewire\Ventas\Registrar as VentasRegistrar;
 use App\Livewire\Usuarios\Index as UsuariosIndex;
+use App\Http\Controllers\ReciboController;
 use Illuminate\Support\Facades\Route;
 
 // Catálogo público
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/movimientos', MovimientosIndex::class)->name('movimientos');
     Route::get('/ventas', VentasIndex::class)->name('ventas');
     Route::get('/ventas/registrar', VentasRegistrar::class)->name('ventas.registrar');
+    Route::get('/ventas/{venta}/recibo', [ReciboController::class, 'descargar'])->name('ventas.recibo');
 
     Route::middleware(App\Http\Middleware\AdminOnly::class)->group(function () {
         Route::get('/usuarios', UsuariosIndex::class)->name('usuarios');
