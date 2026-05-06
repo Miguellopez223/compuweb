@@ -34,9 +34,11 @@ class Index extends Component
     public int $stock_minimo = 5;
     public string $estado = 'Disponible';
     public ?int $categoria_id = null;
+    public string $unidad_medida = 'unidad';
     public $imagen = null;
     public ?string $imagenActual = null;
-    public string $imagenUrl = '';  // URL externa de imagen
+    public string $imagenUrl = '';
+    public array $atributos = [];
 
     protected function rules(): array
     {
@@ -48,9 +50,12 @@ class Index extends Component
             'stock'        => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'estado'       => 'required|in:Disponible,Agotado',
-            'categoria_id' => 'required|exists:categorias,id',
-            'imagen'       => 'nullable|image|max:2048',
-            'imagenUrl'    => 'nullable|url',
+            'categoria_id'  => 'required|exists:categorias,id',
+            'unidad_medida' => 'required|in:unidad,kg,litro,metro',
+            'imagen'        => 'nullable|image|max:2048',
+            'imagenUrl'     => 'nullable|url',
+            'atributos.*.nombre' => 'nullable|string|max:100',
+            'atributos.*.valor'  => 'nullable|string|max:255',
         ];
     }
 
@@ -71,27 +76,41 @@ class Index extends Component
 
     public function openCreate(): void
     {
-        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId']);
+        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId', 'atributos']);
         $this->stock = 0;
         $this->stock_minimo = 5;
         $this->estado = 'Disponible';
+        $this->unidad_medida = 'unidad';
         $this->categoria_id = null;
         $this->showModal = true;
     }
 
+    public function addAtributo(): void
+    {
+        $this->atributos[] = ['nombre' => '', 'valor' => ''];
+    }
+
+    public function removeAtributo(int $index): void
+    {
+        unset($this->atributos[$index]);
+        $this->atributos = array_values($this->atributos);
+    }
+
     public function openEdit(int $id): void
     {
-        $p = Producto::findOrFail($id);
-        $this->editingId    = $p->id;
-        $this->nombre       = $p->nombre;
-        $this->sku          = $p->sku ?? '';
-        $this->descripcion  = $p->descripcion ?? '';
-        $this->precio       = $p->precio;
-        $this->stock        = $p->stock;
-        $this->stock_minimo = $p->stock_minimo;
-        $this->estado       = $p->estado;
-        $this->categoria_id = $p->categoria_id;
-        $this->imagen       = null;
+        $p = Producto::with('atributos')->findOrFail($id);
+        $this->editingId     = $p->id;
+        $this->nombre        = $p->nombre;
+        $this->sku           = $p->sku ?? '';
+        $this->descripcion   = $p->descripcion ?? '';
+        $this->precio        = $p->precio;
+        $this->stock         = $p->stock;
+        $this->stock_minimo  = $p->stock_minimo;
+        $this->estado        = $p->estado;
+        $this->unidad_medida = $p->unidad_medida;
+        $this->categoria_id  = $p->categoria_id;
+        $this->imagen        = null;
+        $this->atributos     = $p->atributos->map(fn($a) => ['nombre' => $a->nombre, 'valor' => $a->valor])->toArray();
 
         // Si la imagen guardada es una URL externa, cargarla en imagenUrl
         if ($p->imagen && str_starts_with($p->imagen, 'http')) {
@@ -130,31 +149,43 @@ class Index extends Component
         }
 
         $data = [
-            'tienda_id'    => auth()->user()->tienda_id,
-            'categoria_id' => $this->categoria_id,
-            'nombre'       => $this->nombre,
-            'sku'          => $this->sku ?: null,
-            'descripcion'  => $this->descripcion ?: null,
-            'imagen'       => $imagenPath,
-            'precio'       => $this->precio,
-            'stock'        => $this->stock,
-            'stock_minimo' => $this->stock_minimo,
-            'estado'       => $this->stock == 0 ? 'Agotado' : $this->estado,
+            'tienda_id'     => auth()->user()->tienda_id,
+            'categoria_id'  => $this->categoria_id,
+            'nombre'        => $this->nombre,
+            'sku'           => $this->sku ?: null,
+            'descripcion'   => $this->descripcion ?: null,
+            'imagen'        => $imagenPath,
+            'precio'        => $this->precio,
+            'stock'         => $this->stock,
+            'stock_minimo'  => $this->stock_minimo,
+            'unidad_medida' => $this->unidad_medida,
+            'estado'        => $this->stock == 0 ? 'Agotado' : $this->estado,
         ];
 
         if ($this->editingId) {
-            Producto::findOrFail($this->editingId)->update($data);
-            session()->flash('success', 'Producto actualizado.');
+            $producto = Producto::findOrFail($this->editingId);
+            $producto->update($data);
         } else {
-            Producto::create($data);
-            session()->flash('success', 'Producto creado.');
+            $producto = Producto::create($data);
         }
 
+        $producto->atributos()->delete();
+        $validAttrs = array_filter($this->atributos, fn($a) => !empty($a['nombre']) && !empty($a['valor']));
+        foreach ($validAttrs as $attr) {
+            $producto->atributos()->create([
+                'nombre' => $attr['nombre'],
+                'valor'  => $attr['valor'],
+            ]);
+        }
+
+        session()->flash('success', $this->editingId ? 'Producto actualizado.' : 'Producto creado.');
+
         $this->showModal = false;
-        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId']);
+        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId', 'atributos']);
         $this->stock = 0;
         $this->stock_minimo = 5;
         $this->estado = 'Disponible';
+        $this->unidad_medida = 'unidad';
         $this->categoria_id = null;
     }
 

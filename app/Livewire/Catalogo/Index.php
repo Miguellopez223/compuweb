@@ -2,17 +2,17 @@
 
 namespace App\Livewire\Catalogo;
 
+use App\Models\Categoria;
+use App\Models\Producto;
+use App\Models\Tienda;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
 
 class Index extends Component
 {
     public string $slug;
-    public array  $tienda     = [];
-    public array  $categorias = [];
-    public bool   $notFound   = false;
-    public bool   $apiError   = false;
+    public ?object $tienda = null;
+    public bool $notFound = false;
 
     #[Url(as: 'q')]
     public string $busqueda = '';
@@ -28,73 +28,69 @@ class Index extends Component
     public function mount(string $slug): void
     {
         $this->slug = $slug;
-        $base       = rtrim(env('API_URL', 'http://compuweb-api.test'), '/');
+        $this->tienda = Tienda::where('slug', $slug)->where('estado', true)->first();
 
-        try {
-            $tRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}");
-            if ($tRes->status() >= 400) {
-                $this->notFound = true;
-                return;
-            }
-            $this->tienda = $tRes->json();
-        } catch (\Exception $e) {
-            \Log::error("Catalogo: error cargando tienda [{$slug}]: " . $e->getMessage());
-            $this->apiError = true;
-            return;
-        }
-
-        try {
-            $cRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}/categorias");
-            if ($cRes->successful()) {
-                $this->categorias = $cRes->json();
-            } else {
-                \Log::warning("Catalogo: /categorias devolvió {$cRes->status()} para [{$slug}]");
-                $this->categorias = [];
-            }
-        } catch (\Exception $e) {
-            \Log::error("Catalogo: error cargando categorias [{$slug}]: " . $e->getMessage());
-            $this->categorias = [];
+        if (!$this->tienda) {
+            $this->notFound = true;
         }
     }
 
     public function updatingBusqueda(): void        { $this->pagina = 1; }
-    public function updatingFiltroCategoria(): void { $this->pagina = 1; }
-    public function updatingOrdenar(): void         { $this->pagina = 1; }
+    public function updatingFiltroCategoria(): void  { $this->pagina = 1; }
+    public function updatingOrdenar(): void          { $this->pagina = 1; }
 
     public function paginar(int $pagina): void { $this->pagina = $pagina; }
 
     public function render()
     {
-        $productos = [];
-        $meta      = ['current_page' => 1, 'last_page' => 1, 'total' => 0];
+        $productos = collect();
+        $categorias = collect();
+        $meta = ['current_page' => 1, 'last_page' => 1, 'total' => 0];
 
-        if (!$this->notFound && !$this->apiError) {
-            $base   = rtrim(env('API_URL', 'http://compuweb-api.test'), '/');
-            $params = ['per_page' => 12, 'page' => $this->pagina, 'sort' => $this->ordenar];
+        if (!$this->notFound) {
+            $categorias = Categoria::withoutGlobalScopes()
+                ->where('tienda_id', $this->tienda->id)
+                ->orderBy('nombre')
+                ->get();
 
-            if ($this->busqueda)       $params['q']            = $this->busqueda;
-            if ($this->filtroCategoria) $params['categoria_id'] = $this->filtroCategoria;
+            $query = Producto::withoutGlobalScopes()
+                ->with(['categoria:id,nombre', 'atributos'])
+                ->where('tienda_id', $this->tienda->id)
+                ->where('estado', 'Disponible')
+                ->where('stock', '>', 0);
 
-            try {
-                $res = Http::timeout(5)->get("{$base}/api/tiendas/{$this->slug}/productos", $params);
-                if ($res->successful()) {
-                    $data      = $res->json();
-                    $productos = $data['data'] ?? [];
-                    $meta      = [
-                        'current_page' => $data['current_page'] ?? 1,
-                        'last_page'    => $data['last_page']    ?? 1,
-                        'total'        => $data['total']        ?? 0,
-                    ];
-                }
-            } catch (\Exception) {
-                $this->apiError = true;
+            if ($this->busqueda) {
+                $q = $this->busqueda;
+                $query->where(fn($qb) =>
+                    $qb->where('nombre', 'like', "%{$q}%")
+                       ->orWhere('sku', 'like', "%{$q}%")
+                );
             }
+
+            if ($this->filtroCategoria) {
+                $query->where('categoria_id', $this->filtroCategoria);
+            }
+
+            match ($this->ordenar) {
+                'precio_asc'  => $query->orderBy('precio', 'asc'),
+                'precio_desc' => $query->orderBy('precio', 'desc'),
+                default       => $query->orderBy('nombre', 'asc'),
+            };
+
+            $paginated = $query->paginate(12, ['*'], 'page', $this->pagina);
+
+            $productos = $paginated->getCollection();
+            $meta = [
+                'current_page' => $paginated->currentPage(),
+                'last_page'    => $paginated->lastPage(),
+                'total'        => $paginated->total(),
+            ];
         }
 
-        return view('livewire.catalogo.index', compact('productos', 'meta'))
+        return view('livewire.catalogo.index', compact('productos', 'categorias', 'meta'))
             ->layout('layouts.catalogo', [
-                'tiendaNombre' => $this->tienda['nombre'] ?? 'Catálogo',
-                'tiendaPhone'  => $this->tienda['telefono_principal'] ?? '',
+                'tiendaNombre' => $this->tienda?->nombre ?? 'Catalogo',
+                'tiendaPhone'  => $this->tienda?->telefono_principal ?? '',
                 'slug'         => $this->slug,
             ]);
     }

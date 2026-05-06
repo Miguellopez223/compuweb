@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Categoria extends Model
 {
-    protected $fillable = ['tienda_id', 'nombre', 'especialista_id'];
+    protected $fillable = ['tienda_id', 'nombre'];
 
     protected static function booted(): void
     {
@@ -15,6 +15,5 @@ class Categoria extends Model
     }
 
     public function tienda() { return $this->belongsTo(Tienda::class); }
-    public function especialista() { return $this->belongsTo(User::class, 'especialista_id'); }
     public function productos() { return $this->hasMany(Producto::class); }
 }

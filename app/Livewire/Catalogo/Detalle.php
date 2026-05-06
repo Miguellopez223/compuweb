@@ -2,42 +2,56 @@
 
 namespace App\Livewire\Catalogo;
 
+use App\Models\Producto;
+use App\Models\Tienda;
+use App\Models\User;
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
 
 class Detalle extends Component
 {
     public string $slug;
-    public int    $id;
-    public array  $producto = [];
-    public array  $tienda   = [];
-    public bool   $notFound = false;
+    public int $id;
+    public ?object $tienda = null;
+    public ?object $producto = null;
+    public bool $notFound = false;
+    public array $vendedores = [];
 
     public function mount(string $slug, int $id): void
     {
         $this->slug = $slug;
         $this->id   = $id;
-        $base       = rtrim(env('API_URL', 'http://compuweb-api.test'), '/');
 
-        try {
-            $tRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}");
-            if ($tRes->failed()) { $this->notFound = true; return; }
-            $this->tienda = $tRes->json();
+        $this->tienda = Tienda::where('slug', $slug)->where('estado', true)->first();
 
-            $pRes = Http::timeout(5)->get("{$base}/api/tiendas/{$slug}/productos/{$id}");
-            if ($pRes->status() === 404 || $pRes->failed()) { $this->notFound = true; return; }
-            $this->producto = $pRes->json();
-        } catch (\Exception) {
+        if (!$this->tienda) {
             $this->notFound = true;
+            return;
         }
+
+        $this->producto = Producto::withoutGlobalScopes()
+            ->with(['categoria:id,nombre', 'atributos'])
+            ->where('tienda_id', $this->tienda->id)
+            ->where('estado', 'Disponible')
+            ->find($id);
+
+        if (!$this->producto) {
+            $this->notFound = true;
+            return;
+        }
+
+        $this->vendedores = User::where('tienda_id', $this->tienda->id)
+            ->where('visible_catalogo', true)
+            ->whereNotNull('whatsapp_number')
+            ->get(['id', 'name', 'role', 'whatsapp_number'])
+            ->toArray();
     }
 
     public function render()
     {
         return view('livewire.catalogo.detalle')
             ->layout('layouts.catalogo', [
-                'tiendaNombre' => $this->tienda['nombre'] ?? 'Catálogo',
-                'tiendaPhone'  => $this->tienda['telefono_principal'] ?? '',
+                'tiendaNombre' => $this->tienda?->nombre ?? 'Catalogo',
+                'tiendaPhone'  => $this->tienda?->telefono_principal ?? '',
                 'slug'         => $this->slug,
             ]);
     }

@@ -12,7 +12,8 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'tienda_id', 'name', 'email', 'password', 'role', 'whatsapp_number',
+        'tienda_id', 'name', 'email', 'password', 'role',
+        'whatsapp_number', 'visible_catalogo',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -22,11 +23,11 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'visible_catalogo'  => 'boolean',
         ];
     }
 
     public function tienda() { return $this->belongsTo(Tienda::class); }
     public function ventas() { return $this->hasMany(Venta::class, 'vendedor_id'); }
     public function movimientos() { return $this->hasMany(MovimientoInventario::class); }
-    public function categorias() { return $this->hasMany(Categoria::class, 'especialista_id'); }
 }
