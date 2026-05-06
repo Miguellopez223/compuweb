@@ -9,12 +9,13 @@ class Producto extends Model
 {
     protected $fillable = [
         'tienda_id', 'categoria_id', 'nombre', 'sku',
-        'descripcion', 'imagen', 'precio', 'stock', 'stock_minimo',
+        'descripcion', 'imagen', 'precio', 'precio_costo', 'stock', 'stock_minimo',
         'unidad_medida', 'estado',
     ];
 
     protected $casts = [
         'precio' => 'decimal:2',
+        'precio_costo' => 'decimal:2',
         'stock'  => 'integer',
         'stock_minimo' => 'integer',
     ];
