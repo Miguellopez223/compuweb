@@ -13,7 +13,6 @@ class Cliente extends Model
         'ci_nit',
         'telefono',
         'email',
-        'direccion',
         'estado',
     ];
 

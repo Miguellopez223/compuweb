@@ -1,11 +1,17 @@
 <div class="w-full max-w-md">
     {{-- Logo / Brand --}}
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        @if(file_exists(public_path('imagen.png')))
+        <img src="{{ asset('imagen.png') }}"
+             alt="CompuWeb"
+             class="w-28 h-28 rounded-2xl shadow-xl mx-auto mb-4 object-contain">
+        @else
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-2xl mb-4 shadow-lg">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
             </svg>
         </div>
+        @endif
         <h1 class="text-2xl font-bold text-white">CompuWeb System</h1>
         <p class="text-slate-400 text-sm mt-1">Gestión de Inventario y Ventas</p>
     </div>

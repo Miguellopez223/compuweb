@@ -148,20 +148,6 @@
             color: #000;
         }
 
-        .group-box {
-            text-align: center;
-            margin-top: 8px;
-            font-size: 9px;
-            font-weight: bold;
-            color: #000;
-        }
-
-        .group-title {
-            font-family: 'DejaVu Serif', serif;
-            font-weight: 900;
-            margin-bottom: 2px;
-        }
-
         .logo-error {
             text-align: center;
             font-size: 9px;
@@ -265,13 +251,6 @@
         </div>
     @endif
 
-    @if($venta->cliente_direccion)
-        <div class="info-line">
-            <span class="label">Dir:</span>
-            <span class="value">{{ $venta->cliente_direccion }}</span>
-        </div>
-    @endif
-
     <div class="separator"></div>
 
     {{-- Detalle de productos --}}
@@ -317,15 +296,6 @@
         {{ $venta->created_at->format('d/m/Y H:i:s') }}
     </div>
 
-    {{-- Integrantes --}}
-    <div class="group-box">
-        <div class="group-title">Integrantes del grupo</div>
-        Alan Marcelo Villavicencio Ponce <br>
-        Santiago Matias Daëns Hoyos <br>
-        Ignacio Daza Reyes <br>
-        Miguel Angel Lopez Arispe
-
-    </div>
 
 </body>
 </html>

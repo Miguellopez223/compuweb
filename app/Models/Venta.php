@@ -11,7 +11,7 @@ class Venta extends Model
         'tienda_id', 'vendedor_id', 'codigo_pedido',
         'cliente_id',
         'cliente_nombre', 'cliente_telefono', 'cliente_email',
-        'cliente_direccion', 'cliente_nit',
+        'cliente_nit',
         'total', 'metodo_pago', 'estado_venta',
     ];
 

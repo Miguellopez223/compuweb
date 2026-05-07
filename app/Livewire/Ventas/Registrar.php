@@ -24,7 +24,6 @@ class Registrar extends Component
     public string $cliente_nombre = '';
     public string $cliente_telefono = '';
     public string $cliente_email = '';
-    public string $cliente_direccion = '';
     public string $cliente_nit = '';
     public string $metodo_pago = 'efectivo';
 
@@ -33,18 +32,24 @@ class Registrar extends Component
     public array $resultadosClientes = [];
     public bool $mostrarResultados = false;
 
+    // 'buscar' | 'nuevo' | 'anonimo'
+    public string $modoCliente = 'buscar';
+    public bool $editandoCliente = false;
+
     public bool $showCheckout = false;
     public bool $showSuccess = false;
     public ?int $ventaId = null;
 
-    protected $rules = [
-        'cliente_nombre'    => 'required|string|max:255',
-        'cliente_telefono'  => 'nullable|string|max:20',
-        'cliente_email'     => 'nullable|email|max:255',
-        'cliente_direccion' => 'nullable|string|max:500',
-        'cliente_nit'       => 'nullable|string|max:20',
-        'metodo_pago'       => 'required|in:efectivo,qr,transferencia',
-    ];
+    protected function rules(): array
+    {
+        return [
+            'cliente_nombre'   => $this->modoCliente === 'anonimo' ? 'nullable' : 'required|string|max:255',
+            'cliente_telefono' => 'nullable|string|max:20',
+            'cliente_email'    => 'nullable|email|max:255',
+            'cliente_nit'      => 'nullable|string|max:20',
+            'metodo_pago'      => 'required|in:efectivo,qr,transferencia',
+        ];
+    }
 
     protected $messages = [
         'cliente_nombre.required' => 'El nombre del cliente es obligatorio.',
@@ -114,6 +119,21 @@ class Registrar extends Component
         return array_sum(array_column($this->carrito, 'subtotal'));
     }
 
+    public function setModoCliente(string $modo): void
+    {
+        $this->modoCliente = $modo;
+        $this->editandoCliente = false;
+        $this->resetValidation();
+        if ($modo !== 'buscar') {
+            $this->busquedaCliente = '';
+            $this->resultadosClientes = [];
+            $this->mostrarResultados = false;
+        }
+        if ($modo !== 'nuevo' && $modo !== 'buscar') {
+            $this->limpiarCliente();
+        }
+    }
+
     public function abrirCheckout(): void
     {
         if (empty($this->carrito)) {
@@ -121,6 +141,8 @@ class Registrar extends Component
             return;
         }
 
+        $this->modoCliente = 'buscar';
+        $this->editandoCliente = false;
         $this->showCheckout = true;
     }
 
@@ -141,14 +163,16 @@ class Registrar extends Component
         DB::transaction(function () {
             $codigo = 'VTA-' . auth()->user()->tienda_id . now()->format('ymdHis');
 
-            if (!$this->cliente_id) {
+            if ($this->modoCliente === 'anonimo') {
+                $this->cliente_nombre = 'Cliente genérico';
+                $this->cliente_id = null;
+            } elseif (!$this->cliente_id) {
                 $cliente = Cliente::create([
                     'tienda_id'  => auth()->user()->tienda_id,
                     'nombre'     => $this->cliente_nombre,
                     'ci_nit'     => $this->cliente_nit ?: null,
                     'telefono'   => $this->cliente_telefono ?: null,
                     'email'      => $this->cliente_email ?: null,
-                    'direccion'  => $this->cliente_direccion ?: null,
                 ]);
                 $this->cliente_id = $cliente->id;
             }
@@ -161,7 +185,6 @@ class Registrar extends Component
                 'cliente_nombre'     => $this->cliente_nombre,
                 'cliente_telefono'   => $this->cliente_telefono ?: null,
                 'cliente_email'      => $this->cliente_email ?: null,
-                'cliente_direccion'  => $this->cliente_direccion ?: null,
                 'cliente_nit'        => $this->cliente_nit ?: null,
                 'total'              => $this->getTotal(),
                 'metodo_pago'        => $this->metodo_pago,
@@ -200,7 +223,9 @@ class Registrar extends Component
         });
 
         $this->carrito = [];
-        $this->reset(['cliente_id', 'cliente_nombre', 'cliente_telefono', 'cliente_email', 'cliente_direccion', 'cliente_nit', 'metodo_pago', 'busqueda', 'busquedaCliente', 'resultadosClientes', 'mostrarResultados']);
+        $this->modoCliente = 'buscar';
+        $this->editandoCliente = false;
+        $this->reset(['cliente_id', 'cliente_nombre', 'cliente_telefono', 'cliente_email', 'cliente_nit', 'metodo_pago', 'busqueda', 'busquedaCliente', 'resultadosClientes', 'mostrarResultados']);
         $this->metodo_pago = 'efectivo';
         $this->showCheckout = false;
         $this->showSuccess = true;
@@ -222,7 +247,7 @@ class Registrar extends Component
                   ->orWhere('ci_nit', 'like', "%{$termino}%");
             })
             ->limit(10)
-            ->get(['id', 'nombre', 'ci_nit', 'telefono', 'email', 'direccion'])
+            ->get(['id', 'nombre', 'ci_nit', 'telefono', 'email'])
             ->toArray();
 
         $this->mostrarResultados = true;
@@ -238,10 +263,26 @@ class Registrar extends Component
         $this->cliente_nit = $cliente->ci_nit ?? '';
         $this->cliente_telefono = $cliente->telefono ?? '';
         $this->cliente_email = $cliente->email ?? '';
-        $this->cliente_direccion = $cliente->direccion ?? '';
         $this->busquedaCliente = '';
         $this->resultadosClientes = [];
         $this->mostrarResultados = false;
+    }
+
+    public function actualizarCliente(): void
+    {
+        if (!$this->cliente_id) return;
+
+        $this->validateOnly('cliente_nombre');
+        $this->validateOnly('cliente_email');
+
+        Cliente::findOrFail($this->cliente_id)->update([
+            'nombre'   => $this->cliente_nombre,
+            'ci_nit'   => $this->cliente_nit ?: null,
+            'telefono' => $this->cliente_telefono ?: null,
+            'email'    => $this->cliente_email ?: null,
+        ]);
+
+        $this->editandoCliente = false;
     }
 
     public function limpiarCliente(): void
@@ -251,7 +292,7 @@ class Registrar extends Component
         $this->cliente_nit = '';
         $this->cliente_telefono = '';
         $this->cliente_email = '';
-        $this->cliente_direccion = '';
+        $this->editandoCliente = false;
         $this->busquedaCliente = '';
         $this->resultadosClientes = [];
         $this->mostrarResultados = false;
