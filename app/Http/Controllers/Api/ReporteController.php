@@ -9,8 +9,21 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @tags Reportes (solo Admin)
+ */
 class ReporteController extends Controller
 {
+    /**
+     * Reporte de ventas
+     *
+     * Genera un resumen de ventas de la tienda: totales, ingresos, desglose
+     * por día, por método de pago y por vendedor. Solo accesible para usuarios
+     * con rol `admin`.
+     *
+     * @queryParam fecha_desde string Fecha de inicio en formato Y-m-d. Example: 2025-01-01
+     * @queryParam fecha_hasta string Fecha de fin en formato Y-m-d. Example: 2025-12-31
+     */
     public function ventas(Request $request): JsonResponse
     {
         $request->validate([
@@ -45,6 +58,14 @@ class ReporteController extends Controller
         return response()->json($resumen);
     }
 
+    /**
+     * Reporte de inventario
+     *
+     * Genera un resumen del estado del inventario: total de productos,
+     * productos sin stock, productos con stock bajo y valor total del inventario.
+     * Incluye una lista de alertas para productos que han alcanzado su stock mínimo.
+     * Solo accesible para usuarios con rol `admin`.
+     */
     public function inventario(): JsonResponse
     {
         $productos = Producto::with('categoria:id,nombre')->get();

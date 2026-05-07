@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    /**
+     * Iniciar sesión
+     *
+     * Autentica al usuario y retorna un token de acceso Bearer (Laravel Passport).
+     * Usa este token en el header `Authorization: Bearer {token}` para los endpoints protegidos.
+     *
+     * @unauthenticated
+     */
     public function login(Request $request): JsonResponse
     {
         $request->validate([
@@ -36,6 +44,11 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Cerrar sesión
+     *
+     * Revoca el token Bearer actual. El token queda inválido inmediatamente.
+     */
     public function logout(Request $request): JsonResponse
     {
         $request->user('api')->token()->revoke();
@@ -43,6 +56,11 @@ class AuthController extends Controller
         return response()->json(['message' => 'Sesion cerrada correctamente.']);
     }
 
+    /**
+     * Usuario autenticado
+     *
+     * Retorna los datos del usuario dueño del token Bearer actual.
+     */
     public function me(Request $request): JsonResponse
     {
         $user = $request->user('api');

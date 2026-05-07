@@ -7,6 +7,7 @@ use App\Models\DetalleVenta;
 use App\Models\MovimientoInventario;
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\Tienda;
 use App\Models\User;
 use App\Models\Venta;
 use Carbon\Carbon;
@@ -16,10 +17,23 @@ use Illuminate\Support\Facades\Hash;
 
 class TercerTiempoSeeder extends Seeder
 {
-    private int $tid = 2; // tienda_id
+    private int $tid;
 
     public function run(): void
     {
+        $tienda = Tienda::withoutGlobalScopes()
+            ->firstOrCreate(
+                ['slug' => 'tercertiempo'],
+                [
+                    'nombre'             => 'Tercer Tiempo',
+                    'slug'               => 'tercertiempo',
+                    'telefono_principal' => '59171234567',
+                    'estado'             => true,
+                ]
+            );
+
+        $this->tid = $tienda->id;
+
         $this->limpiar();
         $users    = $this->crearUsuarios();
         $prods    = $this->crearProductos();
@@ -90,60 +104,60 @@ class TercerTiempoSeeder extends Seeder
     {
         $catalogo = [
             'Cervezas' => [
-                ['nombre' => 'Amstel 269ml',                         'precio' =>  10.00, 'costo' =>  6.00, 'stock' =>  48],
+                ['nombre' => 'Amstel 269ml',                         'precio' =>  10.00, 'costo' =>  6.00, 'stock' =>  48, 'imagen' => 'uploads/productos/69fcb944381be_7802100005526.webp'],
             ],
             'Tragos por Vasos' => [
-                ['nombre' => 'Tequila Jarana',                       'precio' =>  15.00, 'costo' =>  8.00, 'stock' => 100],
-                ['nombre' => 'Jägermeister',                         'precio' =>  15.00, 'costo' =>  9.00, 'stock' =>  80],
-                ['nombre' => 'Bacardi Gold',                         'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  80],
-                ['nombre' => 'Gin Greenalls - Clasico',               'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  60],
-                ['nombre' => 'Gin Greenalls - Frutos Rojos',          'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  60],
-                ['nombre' => 'Fernet Branca',                        'precio' =>  25.00, 'costo' => 15.00, 'stock' =>  70],
-                ['nombre' => 'Vodka',                                'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  80],
-                ['nombre' => 'Singani Casa Real',                    'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  70],
-                ['nombre' => 'Mojito',                               'precio' =>  25.00, 'costo' => 12.00, 'stock' =>  60],
-                ['nombre' => 'Martini Spritz',                       'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  60],
-                ['nombre' => 'Moscow Mule',                          'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  60],
-                ['nombre' => 'Negroni',                              'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  50],
+                ['nombre' => 'Tequila Jarana',                       'precio' =>  15.00, 'costo' =>  8.00, 'stock' => 100, 'imagen' => 'uploads/productos/69fcb9550aa23_JARANA-REPOSADO_500x.jpg'],
+                ['nombre' => 'Jägermeister',                         'precio' =>  15.00, 'costo' =>  9.00, 'stock' =>  80, 'imagen' => 'uploads/productos/69fcb972190f1_espirituoso-jagermeister-700ml-espirituoso-jagermeister-700ml.jpg'],
+                ['nombre' => 'Bacardi Gold',                         'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  80, 'imagen' => 'uploads/productos/69fcb97e96269_Bacardi-Gold-Rum-1L.webp'],
+                ['nombre' => 'Gin Greenalls - Clasico',               'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  60, 'imagen' => 'uploads/productos/69fcb9b009762_5010296002980.webp'],
+                ['nombre' => 'Gin Greenalls - Frutos Rojos',          'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  60, 'imagen' => 'uploads/productos/69fcb9bd9fc36_greenalls-wild-berry-pink-gin.jpg.webp'],
+                ['nombre' => 'Fernet Branca',                        'precio' =>  25.00, 'costo' => 15.00, 'stock' =>  70, 'imagen' => 'uploads/productos/69fcb9ce7c661_1220001.webp'],
+                ['nombre' => 'Vodka',                                'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  80, 'imagen' => 'uploads/productos/69fcb9da704a8_7312040017683_1024x1024.webp'],
+                ['nombre' => 'Singani Casa Real',                    'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  70, 'imagen' => 'uploads/productos/69fcb9e66643d_images (1).jpg'],
+                ['nombre' => 'Mojito',                               'precio' =>  25.00, 'costo' => 12.00, 'stock' =>  60, 'imagen' => 'uploads/productos/69fcb9f268ba4_istockphoto-542212406-612x612.jpg'],
+                ['nombre' => 'Martini Spritz',                       'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  60, 'imagen' => 'uploads/productos/69fcba03bdfc5_Fiero-Spritz--1200x1500.png'],
+                ['nombre' => 'Moscow Mule',                          'precio' =>  25.00, 'costo' => 13.00, 'stock' =>  60, 'imagen' => 'uploads/productos/69fcba107a9f4_images (2).jpg'],
+                ['nombre' => 'Negroni',                              'precio' =>  25.00, 'costo' => 14.00, 'stock' =>  50, 'imagen' => 'uploads/productos/69fcba19da28f_mezcal-negroni-1500x1500-primary-6f6c472050a949c8a55aa07e1b5a2d1b.jpg'],
             ],
             'Otros Tragos' => [
-                ['nombre' => 'Miks Vodka Ice 275 ml',                'precio' =>  25.00, 'costo' => 15.00, 'stock' =>  24],
+                ['nombre' => 'Miks Vodka Ice 275 ml',                'precio' =>  25.00, 'costo' => 15.00, 'stock' =>  24, 'imagen' => 'uploads/productos/69fcba2b17075_images (3).jpg'],
             ],
             'Tragos en COMBO' => [
-                ['nombre' => 'Botella Ron + 1 Coca Cola 2 Lts',      'precio' => 250.00, 'costo' => 160.00, 'stock' =>  8],
-                ['nombre' => 'Botella Tequila + Limón & Sal',        'precio' => 250.00, 'costo' => 155.00, 'stock' =>  6],
-                ['nombre' => 'Botella Jägermeister',                 'precio' => 280.00, 'costo' => 185.00, 'stock' =>  5],
-                ['nombre' => 'Botella Gin + 1 Agua Tónica 1Lt',      'precio' => 280.00, 'costo' => 180.00, 'stock' =>  5],
-                ['nombre' => 'Botella Fernet + 1 Coca Cola 2 Lts',   'precio' => 250.00, 'costo' => 158.00, 'stock' =>  7],
-                ['nombre' => 'Botella Singani + 1 Ginger 1,5 Lt',    'precio' => 210.00, 'costo' => 130.00, 'stock' =>  8],
+                ['nombre' => 'Botella Ron + 1 Coca Cola 2 Lts',      'precio' => 250.00, 'costo' => 160.00, 'stock' =>  8, 'imagen' => 'uploads/productos/69fcba3bb2006_0301-031003_580x.jpg'],
+                ['nombre' => 'Botella Tequila + Limón & Sal',        'precio' => 250.00, 'costo' => 155.00, 'stock' =>  6, 'imagen' => 'uploads/productos/69fcba4fcd302_botella-y-vaso-de-tequila-bebida-mexicana-servida-con-sal-limón-217911916.webp'],
+                ['nombre' => 'Botella Jägermeister',                 'precio' => 280.00, 'costo' => 185.00, 'stock' =>  5, 'imagen' => 'uploads/productos/69fcba5e41b71_image-proxy.webp'],
+                ['nombre' => 'Botella Gin + 1 Agua Tónica 1Lt',      'precio' => 280.00, 'costo' => 180.00, 'stock' =>  5, 'imagen' => 'uploads/productos/69fcba9a3241e_vineria_san_juan_gin_burnets_sierra_de_los_padres_tonica-copia-9e79d93752d3b24bbd17464542056657-1024-1024.webp'],
+                ['nombre' => 'Botella Fernet + 1 Coca Cola 2 Lts',   'precio' => 250.00, 'costo' => 158.00, 'stock' =>  7, 'imagen' => 'uploads/productos/69fcbaa671ce2_68486f196d80973ae1ac852c.jpg'],
+                ['nombre' => 'Botella Singani + 1 Ginger 1,5 Lt',    'precio' => 210.00, 'costo' => 130.00, 'stock' =>  8, 'imagen' => 'uploads/productos/69fcbab04501c_65c4ebf16a823bc476968acf.jpg'],
             ],
             'Hidratantes' => [
-                ['nombre' => 'Powerade',                             'precio' =>  12.00, 'costo' =>  7.00, 'stock' =>  24],
-                ['nombre' => 'Agua sin gas 500 ml',                  'precio' =>  10.00, 'costo' =>  4.00, 'stock' =>  36],
+                ['nombre' => 'Powerade',                             'precio' =>  12.00, 'costo' =>  7.00, 'stock' =>  24, 'imagen' => 'uploads/productos/69fcbabf18c5c_images (4).jpg'],
+                ['nombre' => 'Agua sin gas 500 ml',                  'precio' =>  10.00, 'costo' =>  4.00, 'stock' =>  36, 'imagen' => 'uploads/productos/69fcbacaefc7d_image-proxy (1).webp'],
             ],
             'Energizantes' => [
-                ['nombre' => 'Red Bull 250ml',                       'precio' =>  15.00, 'costo' =>  9.00, 'stock' =>  24],
+                ['nombre' => 'Red Bull 250ml',                       'precio' =>  15.00, 'costo' =>  9.00, 'stock' =>  24, 'imagen' => 'uploads/productos/69fcbad874deb_564111_700x700.webp'],
             ],
             'Gaseosas 500 ml' => [
-                ['nombre' => 'Coca Cola 500 ml',                     'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  48],
-                ['nombre' => 'Coca Cola Zero 500 ml',                'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  24],
-                ['nombre' => 'Sprite 500ml',                         'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  36],
-                ['nombre' => 'Fanta 500 ml',                         'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  24],
+                ['nombre' => 'Coca Cola 500 ml',                     'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  48, 'imagen' => 'uploads/productos/69fcbaea40198_909698_51f94965-bbe4-484f-8141-b33901a6e979_1200x1200.webp'],
+                ['nombre' => 'Coca Cola Zero 500 ml',                'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  24, 'imagen' => 'uploads/productos/69fcbaf46f6dd_images (5).jpg'],
+                ['nombre' => 'Sprite 500ml',                         'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  36, 'imagen' => 'uploads/productos/69fcbafec62aa_516276-800-auto.webp'],
+                ['nombre' => 'Fanta 500 ml',                         'precio' =>  10.00, 'costo' =>  5.00, 'stock' =>  24, 'imagen' => 'uploads/productos/69fcbb0ed9cb3_111686_Primary.webp'],
             ],
             'Bebidas para Tragos' => [
-                ['nombre' => 'Ginger Ale 1.5 Lt',                   'precio' =>  20.00, 'costo' => 12.00, 'stock' =>  12],
-                ['nombre' => 'Agua tónica 1 Lt',                    'precio' =>  20.00, 'costo' => 11.00, 'stock' =>  12],
+                ['nombre' => 'Ginger Ale 1.5 Lt',                   'precio' =>  20.00, 'costo' => 12.00, 'stock' =>  12, 'imagen' => 'uploads/productos/69fcbb1b24a22_7771609004388-des2_c7edf40e-1043-4efb-b630-234fc8f94df0_700x700.webp'],
+                ['nombre' => 'Agua tónica 1 Lt',                    'precio' =>  20.00, 'costo' => 11.00, 'stock' =>  12, 'imagen' => 'uploads/productos/69fcbb25a5a1c_7772115420655_1200x1200.webp'],
             ],
             'Cigarros' => [
-                ['nombre' => 'CAMELL 20 unidades',                   'precio' =>  25.00, 'costo' => 18.00, 'stock' =>  20],
-                ['nombre' => 'LM 20 unidades',                       'precio' =>  25.00, 'costo' => 17.00, 'stock' =>  20],
+                ['nombre' => 'CAMELL 20 unidades',                   'precio' =>  25.00, 'costo' => 18.00, 'stock' =>  20, 'imagen' => 'uploads/productos/69fcbb317856c_40329055_1200x1200.webp'],
+                ['nombre' => 'LM 20 unidades',                       'precio' =>  25.00, 'costo' => 17.00, 'stock' =>  20, 'imagen' => 'uploads/productos/69fcbb3e2ef30_77766755_700x700.webp'],
             ],
             'Packs' => [
-                ['nombre' => 'PACK HIDRATACION - 12Aguas/12Powerade','precio' => 240.00, 'costo' => 154.00,'stock' =>   5],
+                ['nombre' => 'PACK HIDRATACION - 12Aguas/12Powerade','precio' => 240.00, 'costo' => 154.00,'stock' =>   5, 'imagen' => 'uploads/productos/69fcbb4c690d1_98308_01.webp'],
             ],
             'Parqueos' => [
-                ['nombre' => 'Parqueo Coliseo',                      'precio' =>   5.00, 'costo' =>  0.00, 'stock' => 999],
-                ['nombre' => 'Parqueo Piscina',                      'precio' =>   5.00, 'costo' =>  0.00, 'stock' => 999],
+                ['nombre' => 'Parqueo Coliseo',                      'precio' =>   5.00, 'costo' =>  0.00, 'stock' => 999, 'imagen' => 'uploads/productos/69fcbb59b8f6f_depositphotos_130360542-stock-illustration-vector-illustration-of-the-parking.jpg'],
+                ['nombre' => 'Parqueo Piscina',                      'precio' =>   5.00, 'costo' =>  0.00, 'stock' => 999, 'imagen' => 'uploads/productos/69fcbb62ab2f4_depositphotos_130360542-stock-illustration-vector-illustration-of-the-parking.jpg'],
             ],
         ];
 
@@ -161,6 +175,7 @@ class TercerTiempoSeeder extends Seeder
                     'stock_minimo'  => 5,
                     'unidad_medida' => 'unidad',
                     'estado'        => 'Disponible',
+                    'imagen'        => $item['imagen'] ?? null,
                 ]);
                 $mapa[$item['nombre']] = $p;
             }

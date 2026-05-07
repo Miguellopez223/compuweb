@@ -29,6 +29,11 @@ class Producto extends Model
     {
         if (!$this->imagen) return null;
         if (str_starts_with($this->imagen, 'http')) return $this->imagen;
+        // paths guardados via Storage disk (e.g. "productos/archivo.jpg")
+        if (!str_starts_with($this->imagen, 'uploads/')) {
+            return asset('storage/' . $this->imagen);
+        }
+        // paths guardados directamente en public/ (e.g. "uploads/productos/archivo.jpg")
         return asset($this->imagen);
     }
 

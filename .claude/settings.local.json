@@ -11,7 +11,10 @@
       "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-private.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-private.key)",
       "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-public.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-public.key)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(cd /mnt/c/laragon/www/compuweb && php artisan tinker --execute=\" *)"
+      "Bash(cd /mnt/c/laragon/www/compuweb && php artisan tinker --execute=\" *)",
+      "Bash(composer show *)",
+      "Bash(findstr scramble *)",
+      "Bash(php -r ' *)"
     ]
   }
 }

@@ -11,8 +11,22 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @tags Ventas
+ */
 class VentaController extends Controller
 {
+    /**
+     * Listar ventas
+     *
+     * Retorna el historial paginado de ventas de la tienda del usuario autenticado.
+     * Solo se ven las ventas de la propia tienda (multitenencia).
+     *
+     * @queryParam estado string Filtrar por estado: `Completada`, `Cancelada`. Example: Completada
+     * @queryParam fecha_desde string Fecha de inicio en formato Y-m-d. Example: 2025-01-01
+     * @queryParam fecha_hasta string Fecha de fin en formato Y-m-d. Example: 2025-12-31
+     * @queryParam page integer Número de página (20 resultados por página). Example: 1
+     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user('api');
@@ -29,6 +43,22 @@ class VentaController extends Controller
         return response()->json($ventas);
     }
 
+    /**
+     * Registrar venta
+     *
+     * Crea una nueva venta, descuenta el stock de cada producto y registra
+     * los movimientos de inventario correspondientes.
+     * Requiere token de vendedor o admin.
+     *
+     * @bodyParam cliente_nombre string required Nombre completo del cliente. Example: Juan Pérez
+     * @bodyParam cliente_telefono string Teléfono del cliente. Example: 70012345
+     * @bodyParam cliente_email string Email del cliente. Example: juan@email.com
+     * @bodyParam cliente_nit string CI o NIT del cliente. Example: 1234567
+     * @bodyParam metodo_pago string required Método de pago: `efectivo`, `qr`, `transferencia`. Example: efectivo
+     * @bodyParam items array required Lista de productos a vender.
+     * @bodyParam items[].producto_id integer required ID del producto. Example: 5
+     * @bodyParam items[].cantidad integer required Cantidad a vender (mínimo 1). Example: 2
+     */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -118,6 +148,12 @@ class VentaController extends Controller
         ], 201);
     }
 
+    /**
+     * Detalle de una venta
+     *
+     * Retorna la información completa de una venta, incluyendo todos los
+     * productos vendidos con sus cantidades y precios unitarios.
+     */
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user('api');

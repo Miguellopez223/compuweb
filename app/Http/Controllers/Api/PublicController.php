@@ -10,8 +10,19 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Catálogo Público
+ */
 class PublicController extends Controller
 {
+    /**
+     * Información de la tienda
+     *
+     * Retorna los datos públicos de una tienda a partir de su slug.
+     * No requiere autenticación.
+     *
+     * @unauthenticated
+     */
     public function tienda(string $slug): JsonResponse
     {
         $tienda = Tienda::where('slug', $slug)->where('estado', true)->firstOrFail();
@@ -27,6 +38,14 @@ class PublicController extends Controller
         ]);
     }
 
+    /**
+     * Categorías del catálogo
+     *
+     * Lista todas las categorías de productos de una tienda.
+     * Útil para construir filtros en el catálogo.
+     *
+     * @unauthenticated
+     */
     public function categorias(string $slug): JsonResponse
     {
         $tienda = Tienda::where('slug', $slug)->where('estado', true)->firstOrFail();
@@ -39,6 +58,19 @@ class PublicController extends Controller
         return response()->json($categorias);
     }
 
+    /**
+     * Listado de productos
+     *
+     * Retorna los productos disponibles (con stock > 0) de una tienda.
+     * Soporta filtro por categoría, búsqueda por texto y ordenamiento.
+     *
+     * @unauthenticated
+     * @queryParam categoria_id integer Filtrar por ID de categoría. Example: 3
+     * @queryParam q string Buscar por nombre o SKU. Example: cerveza
+     * @queryParam sort string Ordenamiento: `nombre` (default), `precio_asc`, `precio_desc`. Example: precio_asc
+     * @queryParam per_page integer Resultados por página (máx. 50, default 12). Example: 24
+     * @queryParam page integer Número de página. Example: 1
+     */
     public function productos(Request $request, string $slug): JsonResponse
     {
         $tienda = Tienda::where('slug', $slug)->where('estado', true)->firstOrFail();
@@ -87,6 +119,14 @@ class PublicController extends Controller
         return response()->json($productos);
     }
 
+    /**
+     * Detalle de un producto
+     *
+     * Retorna la información completa de un producto disponible, incluyendo
+     * categoría y atributos adicionales (talla, color, etc.).
+     *
+     * @unauthenticated
+     */
     public function producto(string $slug, int $id): JsonResponse
     {
         $tienda = Tienda::where('slug', $slug)->where('estado', true)->firstOrFail();
@@ -111,6 +151,15 @@ class PublicController extends Controller
         ]);
     }
 
+    /**
+     * Vendedores del catálogo
+     *
+     * Lista los vendedores de la tienda que están visibles en el catálogo público
+     * y tienen número de WhatsApp configurado. Usado para el selector de vendedor
+     * al hacer un pedido por WhatsApp.
+     *
+     * @unauthenticated
+     */
     public function vendedores(string $slug): JsonResponse
     {
         $tienda = Tienda::where('slug', $slug)->where('estado', true)->firstOrFail();
