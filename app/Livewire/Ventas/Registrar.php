@@ -3,6 +3,7 @@
 namespace App\Livewire\Ventas;
 
 use App\Models\Categoria;
+use App\Models\Cliente;
 use App\Models\DetalleVenta;
 use App\Models\MovimientoInventario;
 use App\Models\Producto;
@@ -26,6 +27,11 @@ class Registrar extends Component
     public string $cliente_direccion = '';
     public string $cliente_nit = '';
     public string $metodo_pago = 'efectivo';
+
+    public ?int $cliente_id = null;
+    public string $busquedaCliente = '';
+    public array $resultadosClientes = [];
+    public bool $mostrarResultados = false;
 
     public bool $showCheckout = false;
     public bool $showSuccess = false;
@@ -135,10 +141,23 @@ class Registrar extends Component
         DB::transaction(function () {
             $codigo = 'VTA-' . auth()->user()->tienda_id . now()->format('ymdHis');
 
+            if (!$this->cliente_id) {
+                $cliente = Cliente::create([
+                    'tienda_id'  => auth()->user()->tienda_id,
+                    'nombre'     => $this->cliente_nombre,
+                    'ci_nit'     => $this->cliente_nit ?: null,
+                    'telefono'   => $this->cliente_telefono ?: null,
+                    'email'      => $this->cliente_email ?: null,
+                    'direccion'  => $this->cliente_direccion ?: null,
+                ]);
+                $this->cliente_id = $cliente->id;
+            }
+
             $venta = Venta::create([
                 'tienda_id'          => auth()->user()->tienda_id,
                 'vendedor_id'        => auth()->id(),
                 'codigo_pedido'      => $codigo,
+                'cliente_id'         => $this->cliente_id,
                 'cliente_nombre'     => $this->cliente_nombre,
                 'cliente_telefono'   => $this->cliente_telefono ?: null,
                 'cliente_email'      => $this->cliente_email ?: null,
@@ -180,10 +199,66 @@ class Registrar extends Component
         });
 
         $this->carrito = [];
-        $this->reset(['cliente_nombre', 'cliente_telefono', 'cliente_email', 'cliente_direccion', 'cliente_nit', 'metodo_pago', 'busqueda']);
+        $this->reset(['cliente_id', 'cliente_nombre', 'cliente_telefono', 'cliente_email', 'cliente_direccion', 'cliente_nit', 'metodo_pago', 'busqueda', 'busquedaCliente', 'resultadosClientes', 'mostrarResultados']);
         $this->metodo_pago = 'efectivo';
         $this->showCheckout = false;
         $this->showSuccess = true;
+    }
+
+    public function updatedBusquedaCliente(): void
+    {
+        $termino = trim($this->busquedaCliente);
+
+        if (strlen($termino) < 2) {
+            $this->resultadosClientes = [];
+            $this->mostrarResultados = false;
+            return;
+        }
+
+        $this->resultadosClientes = Cliente::where('estado', true)
+            ->where(function ($q) use ($termino) {
+                $q->where('nombre', 'like', "%{$termino}%")
+                  ->orWhere('ci_nit', 'like', "%{$termino}%");
+            })
+            ->limit(10)
+            ->get(['id', 'nombre', 'ci_nit', 'telefono', 'email', 'direccion'])
+            ->toArray();
+
+        $this->mostrarResultados = true;
+    }
+
+    public function seleccionarCliente(int $clienteId): void
+    {
+        $cliente = Cliente::find($clienteId);
+        if (!$cliente) return;
+
+        $this->cliente_id = $cliente->id;
+        $this->cliente_nombre = $cliente->nombre;
+        $this->cliente_nit = $cliente->ci_nit ?? '';
+        $this->cliente_telefono = $cliente->telefono ?? '';
+        $this->cliente_email = $cliente->email ?? '';
+        $this->cliente_direccion = $cliente->direccion ?? '';
+        $this->busquedaCliente = '';
+        $this->resultadosClientes = [];
+        $this->mostrarResultados = false;
+    }
+
+    public function limpiarCliente(): void
+    {
+        $this->cliente_id = null;
+        $this->cliente_nombre = '';
+        $this->cliente_nit = '';
+        $this->cliente_telefono = '';
+        $this->cliente_email = '';
+        $this->cliente_direccion = '';
+        $this->busquedaCliente = '';
+        $this->resultadosClientes = [];
+        $this->mostrarResultados = false;
+    }
+
+    public function cerrarResultados(): void
+    {
+        $this->mostrarResultados = false;
     }
 
     public function render()
