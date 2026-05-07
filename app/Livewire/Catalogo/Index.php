@@ -5,6 +5,7 @@ namespace App\Livewire\Catalogo;
 use App\Models\Categoria;
 use App\Models\Producto;
 use App\Models\Tienda;
+use App\Models\User;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -87,11 +88,23 @@ class Index extends Component
             ];
         }
 
+        $vendedores = collect();
+        if (!$this->notFound) {
+            $vendedores = User::withoutGlobalScopes()
+                ->where('tienda_id', $this->tienda->id)
+                ->whereNotNull('whatsapp_number')
+                ->where('whatsapp_number', '!=', '')
+                ->select('id', 'name', 'whatsapp_number')
+                ->orderBy('name')
+                ->get();
+        }
+
         return view('livewire.catalogo.index', compact('productos', 'categorias', 'meta'))
             ->layout('layouts.catalogo', [
                 'tiendaNombre' => $this->tienda?->nombre ?? 'Catalogo',
                 'tiendaPhone'  => $this->tienda?->telefono_principal ?? '',
                 'slug'         => $this->slug,
+                'vendedores'   => $vendedores,
             ]);
     }
 }

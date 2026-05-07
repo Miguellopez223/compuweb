@@ -11,9 +11,14 @@
 
 {{-- Alpine.js Cart Store --}}
 <script>
+    const CW_TIENDA_NOMBRE = @json($tiendaNombre ?? 'la tienda');
+    const CW_TIENDA_PHONE  = @json($tiendaPhone ?? '');
+    const CW_VENDEDORES    = @json($vendedores ?? []);
+
     document.addEventListener('alpine:init', () => {
         Alpine.store('cart', {
             open: false,
+            vendorPicker: false,
             items: JSON.parse(localStorage.getItem('cw_cart') || '[]'),
 
             add(product) {
@@ -21,6 +26,7 @@
                 if (found) { found.cantidad++; } else { this.items.push({...product, cantidad: 1}); }
                 this.save();
                 this.open = true;
+                this.vendorPicker = false;
             },
             remove(id) { this.items = this.items.filter(i => i.id !== id); this.save(); },
             increment(id) { const i = this.items.find(i => i.id === id); if (i) { i.cantidad++; this.save(); } },
@@ -28,17 +34,34 @@
                 const i = this.items.find(i => i.id === id);
                 if (i) { i.cantidad > 1 ? i.cantidad-- : this.remove(id); this.save(); }
             },
-            clear() { this.items = []; this.save(); },
+            clear() { this.items = []; this.save(); this.vendorPicker = false; },
             save() { localStorage.setItem('cw_cart', JSON.stringify(this.items)); },
             get total() { return this.items.reduce((s, i) => s + parseFloat(i.precio) * i.cantidad, 0); },
             get count() { return this.items.reduce((s, i) => s + i.cantidad, 0); },
-            waUrl(phone, nombre) {
-                let m = `Hola *${nombre}*, quiero realizar el siguiente pedido:\n\n`;
+
+            buildWaUrl(phone) {
+                let m = `Hola *${CW_TIENDA_NOMBRE}*, quiero realizar el siguiente pedido:\n\n`;
                 this.items.forEach(i => {
                     m += `• ${i.nombre} x${i.cantidad} = Bs. ${(parseFloat(i.precio)*i.cantidad).toFixed(2)}\n`;
                 });
                 m += `\n*Total: Bs. ${this.total.toFixed(2)}*`;
                 return `https://wa.me/${(phone||'').replace(/[^0-9]/g,'')}?text=${encodeURIComponent(m)}`;
+            },
+
+            requestOrder() {
+                if (CW_VENDEDORES.length === 0) {
+                    // fallback: usar teléfono de la tienda
+                    window.open(this.buildWaUrl(CW_TIENDA_PHONE), '_blank');
+                } else if (CW_VENDEDORES.length === 1) {
+                    window.open(this.buildWaUrl(CW_VENDEDORES[0].whatsapp_number), '_blank');
+                } else {
+                    this.vendorPicker = true;
+                }
+            },
+
+            selectVendor(phone) {
+                window.open(this.buildWaUrl(phone), '_blank');
+                this.vendorPicker = false;
             }
         });
     });
@@ -139,20 +162,55 @@
         </div>
 
         <div class="border-t border-zinc-800 p-4 space-y-3" x-show="$store.cart.items.length > 0">
-            <div class="flex justify-between items-center">
+
+            {{-- Resumen total --}}
+            <div x-show="!$store.cart.vendorPicker" class="flex justify-between items-center">
                 <span class="text-zinc-400 font-medium text-sm">Total estimado</span>
                 <span class="text-xl font-bold text-white" x-text="'Bs. ' + $store.cart.total.toFixed(2)"></span>
             </div>
-            <a :href="$store.cart.waUrl('{{ $tiendaPhone ?? '' }}', '{{ $tiendaNombre ?? 'la tienda' }}')"
-               target="_blank"
-               class="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition text-sm">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                Pedir todo por WhatsApp
-            </a>
-            <button @click="$store.cart.clear()"
-                    class="w-full py-2 text-zinc-500 hover:text-red-400 text-xs transition">
-                Vaciar carrito
-            </button>
+
+            {{-- Botón principal: Pedir por WhatsApp --}}
+            <div x-show="!$store.cart.vendorPicker">
+                <button @click="$store.cart.requestOrder()"
+                        class="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition text-sm">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Pedir por WhatsApp
+                </button>
+                <button @click="$store.cart.clear()"
+                        class="w-full py-2 text-zinc-500 hover:text-red-400 text-xs transition">
+                    Vaciar carrito
+                </button>
+            </div>
+
+            {{-- Vendor picker --}}
+            <div x-show="$store.cart.vendorPicker" x-transition>
+                <div class="flex items-center gap-2 mb-3">
+                    <button @click="$store.cart.vendorPicker = false"
+                            class="text-zinc-500 hover:text-white transition p-1 rounded-lg hover:bg-zinc-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <p class="text-sm font-semibold text-white">¿Con quién quieres hablar?</p>
+                </div>
+                <div class="space-y-2">
+                    <template x-for="v in CW_VENDEDORES" :key="v.id">
+                        <button @click="$store.cart.selectVendor(v.whatsapp_number)"
+                                class="w-full flex items-center gap-3 px-4 py-3 bg-zinc-800 hover:bg-green-600/20 hover:border-green-500/40 border border-zinc-700 rounded-xl transition group">
+                            <div class="w-8 h-8 rounded-full bg-zinc-700 group-hover:bg-green-600/30 flex items-center justify-center flex-shrink-0 transition">
+                                <svg class="w-4 h-4 text-zinc-400 group-hover:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
+                            <div class="flex-1 text-left">
+                                <p class="text-sm font-semibold text-white group-hover:text-green-300 transition" x-text="v.name"></p>
+                                <p class="text-xs text-zinc-500 group-hover:text-green-500/70 transition flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                    WhatsApp
+                                </p>
+                            </div>
+                            <svg class="w-4 h-4 text-zinc-600 group-hover:text-green-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
