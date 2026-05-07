@@ -4,7 +4,7 @@ namespace App\Livewire\Productos;
 
 use App\Models\Categoria;
 use App\Models\Producto;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -137,11 +137,14 @@ class Index extends Component
 
         // Prioridad: archivo subido > URL > imagen actual
         if ($this->imagen) {
-            // Eliminar archivo anterior si era un path local
             if ($this->imagenActual && !str_starts_with($this->imagenActual, 'http')) {
-                Storage::disk('public')->delete($this->imagenActual);
+                File::delete(public_path($this->imagenActual));
             }
-            $imagenPath = $this->imagen->store('productos', 'public');
+            $dir = public_path('uploads/productos');
+            File::ensureDirectoryExists($dir);
+            $filename = uniqid() . '_' . $this->imagen->getClientOriginalName();
+            File::copy($this->imagen->getRealPath(), $dir . DIRECTORY_SEPARATOR . $filename);
+            $imagenPath = 'uploads/productos/' . $filename;
         } elseif ($this->imagenUrl) {
             $imagenPath = $this->imagenUrl;
         } else {
@@ -198,9 +201,8 @@ class Index extends Component
     public function delete(): void
     {
         $producto = Producto::findOrFail($this->deleteId);
-        // Solo borrar del disco si es un archivo local (no URL)
         if ($producto->imagen && !str_starts_with($producto->imagen, 'http')) {
-            Storage::disk('public')->delete($producto->imagen);
+            File::delete(public_path($producto->imagen));
         }
         $producto->delete();
         $this->showDeleteModal = false;
@@ -225,11 +227,10 @@ class Index extends Component
         return view('livewire.productos.index', compact('productos', 'categorias'));
     }
 
-    // Helper para generar la URL de display de la imagen
     public function imagenDisplayUrl(?string $imagen): ?string
     {
         if (!$imagen) return null;
         if (str_starts_with($imagen, 'http')) return $imagen;
-        return Storage::url($imagen);
+        return asset($imagen);
     }
 }

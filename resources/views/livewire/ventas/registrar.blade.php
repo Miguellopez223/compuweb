@@ -60,7 +60,7 @@
                 <div class="bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition cursor-pointer overflow-hidden"
                      wire:click="agregarProducto({{ $p->id }})">
                     @if($p->imagen)
-                        <img src="{{ Storage::url($p->imagen) }}" alt="{{ $p->nombre }}"
+                        <img src="{{ $p->imagen_url }}" alt="{{ $p->nombre }}"
                              class="w-full h-32 object-cover">
                     @else
                         <div class="w-full h-32 bg-slate-100 flex items-center justify-center">

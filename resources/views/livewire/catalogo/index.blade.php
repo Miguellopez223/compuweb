@@ -241,7 +241,7 @@
                    style="aspect-ratio:4/3">
 
                     @if($p->imagen)
-                    <img src="{{ str_starts_with($p->imagen, 'http') ? $p->imagen : Storage::url($p->imagen) }}" alt="{{ $p->nombre }}"
+                    <img src="{{ $p->imagen_url }}" alt="{{ $p->nombre }}"
                          loading="lazy"
                          class="absolute inset-0 w-full h-full object-contain p-4
                                 group-hover:scale-105 transition-transform duration-500 ease-out">

@@ -79,11 +79,7 @@ class PublicController extends Controller
             'precio'        => $p->precio,
             'stock'         => $p->stock,
             'unidad_medida' => $p->unidad_medida,
-            'imagen_url'    => $p->imagen
-                ? (str_starts_with($p->imagen, 'http')
-                    ? $p->imagen
-                    : rtrim(config('app.url'), '/') . '/storage/' . $p->imagen)
-                : null,
+            'imagen_url'    => $p->imagen_url,
             'categoria'     => $p->categoria ? ['id' => $p->categoria->id, 'nombre' => $p->categoria->nombre] : null,
             'atributos'     => $p->atributos->map(fn($a) => ['nombre' => $a->nombre, 'valor' => $a->valor]),
         ]);
@@ -109,11 +105,7 @@ class PublicController extends Controller
             'precio'        => $producto->precio,
             'stock'         => $producto->stock,
             'unidad_medida' => $producto->unidad_medida,
-            'imagen_url'    => $producto->imagen
-                ? (str_starts_with($producto->imagen, 'http')
-                    ? $producto->imagen
-                    : rtrim(config('app.url'), '/') . '/storage/' . $producto->imagen)
-                : null,
+            'imagen_url'    => $producto->imagen_url,
             'categoria'     => $producto->categoria ? ['id' => $producto->categoria->id, 'nombre' => $producto->categoria->nombre] : null,
             'atributos'     => $producto->atributos->map(fn($a) => ['nombre' => $a->nombre, 'valor' => $a->valor]),
         ]);

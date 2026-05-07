@@ -58,7 +58,7 @@
                     <tr class="hover:bg-slate-50 transition">
                         <td class="px-5 py-3">
                             @if($p->imagen)
-                                <img src="{{ str_starts_with($p->imagen, 'http') ? $p->imagen : Storage::url($p->imagen) }}"
+                                <img src="{{ $p->imagen_url }}"
                                      alt="{{ $p->nombre }}"
                                      class="w-10 h-10 rounded-lg object-cover border border-slate-200">
                             @else

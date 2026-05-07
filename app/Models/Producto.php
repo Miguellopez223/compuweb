@@ -25,6 +25,13 @@ class Producto extends Model
         static::addGlobalScope(new TiendaScope());
     }
 
+    public function getImagenUrlAttribute(): ?string
+    {
+        if (!$this->imagen) return null;
+        if (str_starts_with($this->imagen, 'http')) return $this->imagen;
+        return asset($this->imagen);
+    }
+
     public function tienda() { return $this->belongsTo(Tienda::class); }
     public function categoria() { return $this->belongsTo(Categoria::class); }
     public function detallesVenta() { return $this->hasMany(DetalleVenta::class); }

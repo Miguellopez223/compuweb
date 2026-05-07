@@ -26,7 +26,7 @@
 
         <div class="rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-square flex items-center justify-center p-4">
             @if($producto->imagen)
-                <img src="{{ str_starts_with($producto->imagen, 'http') ? $producto->imagen : Storage::url($producto->imagen) }}"
+                <img src="{{ $producto->imagen_url }}"
                      alt="{{ $producto->nombre }}"
                      class="w-full h-full object-contain">
             @else

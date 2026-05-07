@@ -9,7 +9,8 @@
       "Bash(npm install *)",
       "Bash(composer create-project *)",
       "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-private.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-private.key)",
-      "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-public.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-public.key)"
+      "PowerShell(Copy-Item C:\\\\laragon\\\\www\\\\compuweb\\\\storage\\\\oauth-public.key C:\\\\laragon\\\\www\\\\compuweb-api\\\\storage\\\\oauth-public.key)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }
