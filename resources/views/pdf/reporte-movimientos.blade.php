@@ -33,7 +33,6 @@
     <div class="filters">
         <span><strong>Periodo:</strong> {{ $filtros['fecha_desde'] ? \Carbon\Carbon::parse($filtros['fecha_desde'])->format('d/m/Y') : 'Inicio' }} — {{ $filtros['fecha_hasta'] ? \Carbon\Carbon::parse($filtros['fecha_hasta'])->format('d/m/Y') : 'Hoy' }}</span>
         @if($filtros['tipo']) <span><strong>Tipo:</strong> {{ ucfirst($filtros['tipo']) }}</span> @endif
-        @if($filtros['motivo']) <span><strong>Motivo:</strong> {{ ucfirst(str_replace('_', ' ', $filtros['motivo'])) }}</span> @endif
         @if($filtros['usuario'])
             @php $nombreUsuario = $movimientos->first()?->user?->name ?? 'N/A'; @endphp
             <span><strong>Usuario:</strong> {{ $nombreUsuario }}</span>
@@ -46,7 +45,6 @@
             <tr>
                 <th>Fecha</th>
                 <th>Tipo</th>
-                <th>Motivo</th>
                 <th>Producto</th>
                 <th class="text-right">Cantidad</th>
                 <th class="text-right">Precio Unit.</th>
@@ -61,7 +59,6 @@
                 <td class="{{ $m->tipo === 'entrada' ? 'tipo-entrada' : 'tipo-salida' }}">
                     {{ $m->tipo === 'entrada' ? '+ Entrada' : '- Salida' }}
                 </td>
-                <td>{{ $m->motivo ? ucfirst(str_replace('_', ' ', $m->motivo)) : '—' }}</td>
                 <td>{{ $m->producto->nombre ?? '—' }}</td>
                 <td class="text-right">{{ $m->tipo === 'entrada' ? '+' : '-' }}{{ $m->cantidad }}</td>
                 <td class="text-right">{{ $m->precio_unitario ? 'Bs. '.number_format($m->precio_unitario, 2) : '—' }}</td>
@@ -70,7 +67,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" style="text-align: center; padding: 20px; color: #94a3b8;">Sin movimientos para los filtros aplicados</td>
+                <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Sin movimientos para los filtros aplicados</td>
             </tr>
             @endforelse
         </tbody>

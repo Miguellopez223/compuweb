@@ -3,6 +3,7 @@
 namespace App\Livewire\Productos;
 
 use App\Models\Categoria;
+use App\Models\MovimientoInventario;
 use App\Models\Producto;
 use App\Models\UnidadMedida;
 use Illuminate\Support\Facades\File;
@@ -31,6 +32,7 @@ class Index extends Component
     public string $sku = '';
     public string $descripcion = '';
     public string $precio = '';
+    public string $precio_costo = '';
     public int $stock = 0;
     public int $stock_minimo = 5;
     public string $estado = 'Disponible';
@@ -54,6 +56,7 @@ class Index extends Component
             'sku'          => 'nullable|string|max:100',
             'descripcion'  => 'nullable|string',
             'precio'       => 'required|numeric|min:0',
+            'precio_costo' => 'nullable|numeric|min:0',
             'stock'        => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'estado'       => 'required|in:Disponible,Agotado',
@@ -83,7 +86,7 @@ class Index extends Component
 
     public function openCreate(): void
     {
-        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId', 'atributos']);
+        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'precio_costo', 'imagen', 'imagenActual', 'imagenUrl', 'editingId', 'atributos']);
         $this->stock = 0;
         $this->stock_minimo = 5;
         $this->estado = 'Disponible';
@@ -111,6 +114,7 @@ class Index extends Component
         $this->sku           = $p->sku ?? '';
         $this->descripcion   = $p->descripcion ?? '';
         $this->precio        = $p->precio;
+        $this->precio_costo  = $p->precio_costo ?: '';
         $this->stock         = $p->stock;
         $this->stock_minimo  = $p->stock_minimo;
         $this->estado        = $p->estado;
@@ -166,6 +170,7 @@ class Index extends Component
             'descripcion'   => $this->descripcion ?: null,
             'imagen'        => $imagenPath,
             'precio'        => $this->precio,
+            'precio_costo'  => $this->precio_costo ?: 0,
             'stock'         => $this->stock,
             'stock_minimo'  => $this->stock_minimo,
             'unidad_medida' => $this->unidad_medida,
@@ -174,9 +179,35 @@ class Index extends Component
 
         if ($this->editingId) {
             $producto = Producto::findOrFail($this->editingId);
+            $stockAnterior = $producto->stock;
             $producto->update($data);
+
+            $diferencia = $this->stock - $stockAnterior;
+            if ($diferencia != 0) {
+                MovimientoInventario::create([
+                    'tienda_id'       => auth()->user()->tienda_id,
+                    'producto_id'     => $producto->id,
+                    'user_id'         => auth()->id(),
+                    'tipo'            => $diferencia > 0 ? 'entrada' : 'salida',
+                    'cantidad'        => abs($diferencia),
+                    'precio_unitario' => $this->precio_costo ?: null,
+                    'referencia'      => 'Ajuste manual de stock',
+                ]);
+            }
         } else {
             $producto = Producto::create($data);
+
+            if ($this->stock > 0) {
+                MovimientoInventario::create([
+                    'tienda_id'       => auth()->user()->tienda_id,
+                    'producto_id'     => $producto->id,
+                    'user_id'         => auth()->id(),
+                    'tipo'            => 'entrada',
+                    'cantidad'        => $this->stock,
+                    'precio_unitario' => $this->precio_costo ?: null,
+                    'referencia'      => 'Stock inicial',
+                ]);
+            }
         }
 
         $producto->atributos()->delete();
@@ -191,7 +222,7 @@ class Index extends Component
         session()->flash('success', $this->editingId ? 'Producto actualizado.' : 'Producto creado.');
 
         $this->showModal = false;
-        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'imagen', 'imagenActual', 'imagenUrl', 'editingId', 'atributos']);
+        $this->reset(['nombre', 'sku', 'descripcion', 'precio', 'precio_costo', 'imagen', 'imagenActual', 'imagenUrl', 'editingId', 'atributos']);
         $this->stock = 0;
         $this->stock_minimo = 5;
         $this->estado = 'Disponible';

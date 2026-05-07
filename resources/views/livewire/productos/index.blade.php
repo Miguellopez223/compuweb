@@ -226,11 +226,17 @@
                                   class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Precio (Bs.) *</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Precio venta (Bs.) *</label>
                         <input wire:model="precio" type="number" step="0.01" min="0" placeholder="0.00"
                                class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500
                                       {{ $errors->has('precio') ? 'border-red-400' : 'border-slate-300' }}">
                         @error('precio') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Precio costo (Bs.)</label>
+                        <input wire:model="precio_costo" type="number" step="0.01" min="0" placeholder="0.00"
+                               class="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        @error('precio_costo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1.5">Estado</label>

@@ -9,7 +9,7 @@ class MovimientoInventario extends Model
 {
     protected $fillable = [
         'tienda_id', 'producto_id', 'user_id',
-        'tipo', 'motivo', 'cantidad', 'precio_unitario', 'proveedor', 'referencia',
+        'tipo', 'cantidad', 'precio_unitario', 'proveedor', 'referencia',
     ];
 
     protected $casts = [

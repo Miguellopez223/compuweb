@@ -1,4 +1,4 @@
-<div class="space-y-4" x-data="reportesCharts()" x-effect="initCharts()">
+<div class="space-y-4">
 
     {{-- Tab Navigation --}}
     <div class="bg-white rounded-xl shadow-sm border border-slate-200">
@@ -102,7 +102,7 @@
     </div>
 
     {{-- Chart.js data injection --}}
-    <div x-ref="dashboardData" class="hidden"
+    <div id="reportes-chart-data" class="hidden"
          data-labels='@json($labels)'
          data-ingresos='@json($dataIngresos)'
          data-ventas='@json($dataVentas)'
@@ -475,17 +475,6 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1">Motivo</label>
-                <select wire:model.live="movMotivo" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">Todos</option>
-                    <option value="compra">Compra</option>
-                    <option value="venta">Venta</option>
-                    <option value="ajuste_positivo">Ajuste (+)</option>
-                    <option value="ajuste_negativo">Ajuste (-)</option>
-                    <option value="devolucion">Devolución</option>
-                </select>
-            </div>
-            <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Usuario</label>
                 <select wire:model.live="movUsuario" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">Todos</option>
@@ -504,7 +493,6 @@
                         <tr>
                             <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Fecha</th>
                             <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Tipo</th>
-                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Motivo</th>
                             <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Producto</th>
                             <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Cantidad</th>
                             <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Precio Unit.</th>
@@ -522,7 +510,6 @@
                                     {{ $m->tipo === 'entrada' ? '+ Entrada' : '- Salida' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-slate-600 text-xs capitalize">{{ $m->motivo ?? '—' }}</td>
                             <td class="px-4 py-3 font-medium text-slate-800">{{ $m->producto->nombre ?? '—' }}</td>
                             <td class="px-4 py-3 text-right font-semibold {{ $m->tipo === 'entrada' ? 'text-emerald-600' : 'text-slate-600' }}">
                                 {{ $m->tipo === 'entrada' ? '+' : '-' }}{{ $m->cantidad }}
@@ -539,7 +526,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-slate-400">
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-400">
                                 <p class="font-medium">No hay movimientos para los filtros seleccionados</p>
                             </td>
                         </tr>
@@ -554,100 +541,91 @@
     </div>
     @endif
 
-    {{-- Chart.js CDN --}}
-    @if($activeTab === 'dashboard')
-    @script
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    @endscript
-    @endif
-
 </div>
 
-@if($activeTab === 'dashboard')
 @script
 <script>
-    function reportesCharts() {
-        return {
-            charts: {},
-            initCharts() {
-                this.$nextTick(() => {
-                    const dataEl = this.$refs.dashboardData;
-                    if (!dataEl) return;
+    const CHART_CDN = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
 
-                    // Destroy existing charts
-                    Object.values(this.charts).forEach(c => c.destroy());
-                    this.charts = {};
+    const renderReporteCharts = () => {
+        const dataEl = document.getElementById('reportes-chart-data');
+        if (!dataEl || typeof Chart === 'undefined') return;
 
-                    const labels = JSON.parse(dataEl.dataset.labels || '[]');
-                    const ingresos = JSON.parse(dataEl.dataset.ingresos || '[]');
-                    const catLabels = JSON.parse(dataEl.dataset.catLabels || '[]');
-                    const catValues = JSON.parse(dataEl.dataset.catValues || '[]');
+        ['chartVentasTiempo', 'chartCategorias'].forEach(id => {
+            const existing = Chart.getChart(id);
+            if (existing) existing.destroy();
+        });
 
-                    // Line chart
-                    const ctxLine = document.getElementById('chartVentasTiempo');
-                    if (ctxLine && typeof Chart !== 'undefined') {
-                        this.charts.line = new Chart(ctxLine, {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    label: 'Ingresos (Bs.)',
-                                    data: ingresos,
-                                    borderColor: '#4f46e5',
-                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                                    fill: true,
-                                    tension: 0.3,
-                                    pointRadius: 4,
-                                    pointBackgroundColor: '#4f46e5',
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: {
-                                    y: { beginAtZero: true, ticks: { callback: v => 'Bs. ' + v.toLocaleString() } }
-                                }
-                            }
-                        });
+        const labels    = JSON.parse(dataEl.dataset.labels    || '[]');
+        const ingresos  = JSON.parse(dataEl.dataset.ingresos  || '[]');
+        const catLabels = JSON.parse(dataEl.dataset.catLabels || '[]');
+        const catValues = JSON.parse(dataEl.dataset.catValues || '[]');
+
+        const ctxLine = document.getElementById('chartVentasTiempo');
+        if (ctxLine) {
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Ingresos (Bs.)',
+                        data: ingresos,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79,70,229,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#4f46e5',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v => 'Bs. ' + v.toLocaleString() } }
                     }
+                }
+            });
+        }
 
-                    // Pie chart
-                    const ctxPie = document.getElementById('chartCategorias');
-                    if (ctxPie && typeof Chart !== 'undefined' && catLabels.length > 0) {
-                        const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'];
-                        this.charts.pie = new Chart(ctxPie, {
-                            type: 'doughnut',
-                            data: {
-                                labels: catLabels,
-                                datasets: [{
-                                    data: catValues,
-                                    backgroundColor: colors.slice(0, catLabels.length),
-                                    borderWidth: 2,
-                                    borderColor: '#fff',
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } }
-                                }
-                            }
-                        });
+        const ctxPie = document.getElementById('chartCategorias');
+        if (ctxPie && catLabels.length > 0) {
+            const colors = ['#4f46e5','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1'];
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catValues,
+                        backgroundColor: colors.slice(0, catLabels.length),
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } }
                     }
-                });
-            }
-        };
-    }
+                }
+            });
+        }
+    };
+
+    const loadChartJs = (cb) => {
+        if (typeof Chart !== 'undefined') { cb(); return; }
+        const s = document.createElement('script');
+        s.src = CHART_CDN;
+        s.onload = cb;
+        document.head.appendChild(s);
+    };
+
+    loadChartJs(renderReporteCharts);
+
+    Livewire.hook('commit', ({ succeed }) => {
+        succeed(() => queueMicrotask(() => loadChartJs(renderReporteCharts)));
+    });
 </script>
 @endscript
-@else
-@script
-<script>
-    function reportesCharts() {
-        return { charts: {}, initCharts() {} };
-    }
-</script>
-@endscript
-@endif

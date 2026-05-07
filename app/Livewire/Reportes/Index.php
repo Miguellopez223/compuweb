@@ -26,7 +26,6 @@ class Index extends Component
     public string $movFechaDesde = '';
     public string $movFechaHasta = '';
     public string $movTipo = '';
-    public string $movMotivo = '';
     public string $movUsuario = '';
 
     // Ventas filters
@@ -52,8 +51,9 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingMovFechaDesde(): void { $this->resetPage(); }
+    public function updatingMovFechaHasta(): void { $this->resetPage(); }
     public function updatingMovTipo(): void { $this->resetPage(); }
-    public function updatingMovMotivo(): void { $this->resetPage(); }
     public function updatingMovUsuario(): void { $this->resetPage(); }
 
     public function exportarMovimientosPdf()
@@ -63,7 +63,6 @@ class Index extends Component
             'fecha_desde' => $this->movFechaDesde,
             'fecha_hasta' => $this->movFechaHasta,
             'tipo' => $this->movTipo,
-            'motivo' => $this->movMotivo,
             'usuario' => $this->movUsuario,
         ];
         $tienda = auth()->user()->tienda;
@@ -83,7 +82,6 @@ class Index extends Component
             ->when($this->movFechaDesde, fn($q) => $q->whereDate('created_at', '>=', $this->movFechaDesde))
             ->when($this->movFechaHasta, fn($q) => $q->whereDate('created_at', '<=', $this->movFechaHasta))
             ->when($this->movTipo, fn($q) => $q->where('tipo', $this->movTipo))
-            ->when($this->movMotivo, fn($q) => $q->where('motivo', $this->movMotivo))
             ->when($this->movUsuario, fn($q) => $q->where('user_id', $this->movUsuario))
             ->latest();
     }
@@ -120,8 +118,11 @@ class Index extends Component
 
     private function getProductosData(): array
     {
+        $tiendaId = auth()->user()->tienda_id;
+
         $bestSellers = DetalleVenta::join('ventas', 'detalle_ventas.venta_id', '=', 'ventas.id')
             ->join('productos', 'detalle_ventas.producto_id', '=', 'productos.id')
+            ->where('ventas.tienda_id', $tiendaId)
             ->where('ventas.estado_venta', 'Completada')
             ->select(
                 'productos.id',
@@ -141,6 +142,7 @@ class Index extends Component
             ->pluck('producto_id')
             ->unique();
         $ventasRecientes = DetalleVenta::join('ventas', 'detalle_ventas.venta_id', '=', 'ventas.id')
+            ->where('ventas.tienda_id', $tiendaId)
             ->where('ventas.created_at', '>=', $fechaCorte)
             ->pluck('detalle_ventas.producto_id')
             ->unique();
@@ -217,6 +219,7 @@ class Index extends Component
         $ventasPorCategoria = DetalleVenta::join('ventas', 'detalle_ventas.venta_id', '=', 'ventas.id')
             ->join('productos', 'detalle_ventas.producto_id', '=', 'productos.id')
             ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->where('ventas.tienda_id', auth()->user()->tienda_id)
             ->where('ventas.estado_venta', 'Completada')
             ->where('ventas.created_at', '>=', $fechaInicio)
             ->select('categorias.nombre', DB::raw('SUM(detalle_ventas.cantidad * detalle_ventas.precio_unitario) as total'))
