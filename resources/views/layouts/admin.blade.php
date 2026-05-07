@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'CompuWeb System' }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
+<title>{{ $title ?? 'CompuWeb System' }}</title>
+
+<link rel="icon" type="image/png" href="{{ asset('imagen.png') }}?v={{ time() }}">
+<link rel="shortcut icon" type="image/png" href="{{ asset('imagen.png') }}?v={{ time() }}">
+
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+@livewireStyles
 </head>
 <body class="bg-slate-100 font-sans antialiased">
 
