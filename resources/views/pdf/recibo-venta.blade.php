@@ -3,111 +3,205 @@
 <head>
     <meta charset="utf-8">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Courier New', monospace;
             font-size: 10px;
             width: 72mm;
             padding: 4mm;
             color: #000;
-        }
-        .center { text-align: center; }
-        .right { text-align: right; }
-        .bold { font-weight: bold; }
-        .separator {
-            border-top: 1px dashed #000;
-            margin: 4px 0;
-        }
-        .store-name {
-            font-size: 14px;
+            background: #fff;
             font-weight: bold;
-            text-align: center;
-            margin-bottom: 2px;
         }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .logo-container img {
+            width: 120px;
+            max-height: 80px;
+        }
+
+        .store-name {
+            font-family: 'DejaVu Serif', serif;
+            font-size: 15px;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 3px;
+            color: #000;
+        }
+
         .store-info {
             text-align: center;
             font-size: 9px;
             margin-bottom: 2px;
-        }
-        .section-title {
             font-weight: bold;
-            font-size: 10px;
-            margin: 4px 0 2px 0;
-            border-bottom: 1px solid #000;
-            padding-bottom: 1px;
+            color: #000;
         }
-        .label { font-weight: bold; }
+
+        .separator {
+            border-top: 2px dashed #000;
+            margin: 5px 0;
+        }
+
+        .section-title {
+            font-family: 'DejaVu Serif', serif;
+            font-weight: 900;
+            font-size: 11px;
+            margin: 5px 0 3px 0;
+            border-bottom: 2px solid #000;
+            padding-bottom: 2px;
+            color: #000;
+        }
+
         .info-line {
-            margin-bottom: 1px;
-            font-size: 9px;
+            margin-bottom: 2px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #000;
         }
+
+        .label {
+            font-family: 'DejaVu Serif', serif;
+            font-weight: 900;
+            font-size: 10px;
+            color: #000;
+        }
+
+        .value {
+            font-family: 'Arial', 'DejaVu Sans', sans-serif;
+            font-weight: 900;
+            font-size: 10px;
+            color: #000;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 3px 0;
+            margin: 4px 0;
         }
+
         table th {
-            font-size: 8px;
+            font-family: 'DejaVu Serif', serif;
+            font-size: 9px;
+            font-weight: 900;
             text-align: left;
-            border-bottom: 1px solid #000;
+            border-bottom: 2px solid #000;
             padding: 2px 1px;
+            color: #000;
         }
+
+        table td {
+            font-family: 'Arial', 'DejaVu Sans', sans-serif;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 2px 1px;
+            vertical-align: top;
+            color: #000;
+        }
+
         table th:last-child,
         table td:last-child {
             text-align: right;
         }
+
         table th:nth-child(2),
         table td:nth-child(2) {
             text-align: center;
         }
-        table td {
-            font-size: 9px;
-            padding: 2px 1px;
-            vertical-align: top;
-        }
+
         .total-row {
-            border-top: 1px dashed #000;
-            padding-top: 4px;
-            margin-top: 4px;
+            border-top: 2px dashed #000;
+            padding-top: 5px;
+            margin-top: 5px;
         }
+
+        .total-label {
+            font-family: 'DejaVu Serif', serif;
+            font-weight: 900;
+            font-size: 12px;
+            text-align: left;
+            color: #000;
+        }
+
         .total-amount {
-            font-size: 16px;
-            font-weight: bold;
+            font-family: 'DejaVu Serif', serif;
+            font-size: 18px;
+            font-weight: 900;
             text-align: right;
+            color: #000;
         }
+
         .footer {
             text-align: center;
-            font-size: 8px;
-            margin-top: 6px;
-            color: #555;
+            font-family: 'Arial', 'DejaVu Sans', sans-serif;
+            font-size: 9px;
+            font-weight: bold;
+            margin-top: 7px;
+            color: #000;
         }
-        .logo-container {
+
+        .group-box {
             text-align: center;
-            margin-bottom: 4px;
+            margin-top: 8px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #000;
         }
-        .logo-container img {
-            max-height: 40px;
-            max-width: 50mm;
+
+        .group-title {
+            font-family: 'DejaVu Serif', serif;
+            font-weight: 900;
+            margin-bottom: 2px;
+        }
+
+        .logo-error {
+            text-align: center;
+            font-size: 9px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
         }
     </style>
 </head>
+
+@php
+    $logoPath = public_path('imagen.png');
+
+    $logoBase64 = file_exists($logoPath)
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+        : null;
+@endphp
+
 <body>
 
-    {{-- Logo y datos de tienda --}}
-    @if($venta->tienda->logo)
+    {{-- Logo de la empresa --}}
     <div class="logo-container">
-        <img src="{{ public_path('storage/' . $venta->tienda->logo) }}" alt="Logo">
+        @if($logoBase64)
+            <img src="{{ $logoBase64 }}" alt="Logo de la empresa">
+        @else
+            <div class="logo-error">IMAGEN NO ENCONTRADA</div>
+        @endif
     </div>
-    @endif
 
+    {{-- Nombre y datos de la tienda --}}
     <div class="store-name">{{ mb_strtoupper($venta->tienda->nombre) }}</div>
 
     @if($venta->tienda->direccion)
         <div class="store-info">{{ $venta->tienda->direccion }}</div>
     @endif
+
     @if($venta->tienda->telefono_principal)
         <div class="store-info">Tel: {{ $venta->tienda->telefono_principal }}</div>
     @endif
+
     @if($venta->tienda->nit)
         <div class="store-info">NIT: {{ $venta->tienda->nit }}</div>
     @endif
@@ -115,28 +209,67 @@
     <div class="separator"></div>
 
     {{-- Datos del pedido --}}
-    <div class="info-line"><span class="label">VENTA:</span> {{ $venta->codigo_pedido }}</div>
-    <div class="info-line"><span class="label">FECHA:</span> {{ $venta->created_at->format('d/m/Y H:i') }}</div>
-    <div class="info-line"><span class="label">ESTADO:</span> {{ $venta->estado_venta }}</div>
-    <div class="info-line"><span class="label">PAGO:</span> {{ ucfirst($venta->metodo_pago) }}</div>
-    <div class="info-line"><span class="label">VENDEDOR:</span> {{ $venta->vendedor->name ?? '-' }}</div>
+    <div class="info-line">
+        <span class="label">VENTA:</span>
+        <span class="value">{{ $venta->codigo_pedido }}</span>
+    </div>
+
+    <div class="info-line">
+        <span class="label">FECHA:</span>
+        <span class="value">{{ $venta->created_at->format('d/m/Y H:i') }}</span>
+    </div>
+
+    <div class="info-line">
+        <span class="label">ESTADO:</span>
+        <span class="value">{{ $venta->estado_venta }}</span>
+    </div>
+
+    <div class="info-line">
+        <span class="label">PAGO:</span>
+        <span class="value">{{ ucfirst($venta->metodo_pago) }}</span>
+    </div>
+
+    <div class="info-line">
+        <span class="label">VENDEDOR:</span>
+        <span class="value">{{ $venta->vendedor->name ?? '--' }}</span>
+    </div>
 
     <div class="separator"></div>
 
     {{-- Datos del cliente --}}
     <div class="section-title">DATOS DEL CLIENTE</div>
-    <div class="info-line"><span class="label">Nombre:</span> {{ mb_strtoupper($venta->cliente_nombre) }}</div>
+
+    <div class="info-line">
+        <span class="label">Nombre:</span>
+        <span class="value">{{ mb_strtoupper($venta->cliente_nombre) }}</span>
+    </div>
+
     @if($venta->cliente_nit)
-        <div class="info-line"><span class="label">NIT/CI:</span> {{ $venta->cliente_nit }}</div>
+        <div class="info-line">
+            <span class="label">NIT/CI:</span>
+            <span class="value">{{ $venta->cliente_nit }}</span>
+        </div>
     @endif
+
     @if($venta->cliente_email)
-        <div class="info-line"><span class="label">Email:</span> {{ $venta->cliente_email }}</div>
+        <div class="info-line">
+            <span class="label">Email:</span>
+            <span class="value">{{ $venta->cliente_email }}</span>
+        </div>
     @endif
+
     @if($venta->cliente_telefono)
-        <div class="info-line"><span class="label">Tel:</span> {{ $venta->cliente_telefono }}</div>
+        <div class="info-line">
+            <span class="label">Tel:</span>
+            <span class="value">{{ $venta->cliente_telefono }}</span>
+        </div>
     @endif
+
     @if($venta->cliente_direccion)
-        <div class="info-line"><span class="label">Dir:</span> {{ $venta->cliente_direccion }}</div>
+        <div class="info-line">
+            <span class="label">Dir:</span>
+            <span class="value">{{ $venta->cliente_direccion }}</span>
+        </div>
     @endif
 
     <div class="separator"></div>
@@ -155,20 +288,21 @@
         </thead>
         <tbody>
             @foreach($venta->detalles as $detalle)
-            <tr>
-                <td>{{ $detalle->producto->nombre ?? 'Producto eliminado' }}</td>
-                <td>{{ $detalle->cantidad }}</td>
-                <td>{{ number_format($detalle->precio_unitario, 2) }}</td>
-                <td>{{ number_format($detalle->cantidad * $detalle->precio_unitario, 2) }}</td>
-            </tr>
+                <tr>
+                    <td>{{ $detalle->producto->nombre ?? 'Producto eliminado' }}</td>
+                    <td>{{ $detalle->cantidad }}</td>
+                    <td>{{ number_format($detalle->precio_unitario, 2) }}</td>
+                    <td>{{ number_format($detalle->cantidad * $detalle->precio_unitario, 2) }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>
 
+    {{-- Total --}}
     <div class="total-row">
         <table>
             <tr>
-                <td class="bold" style="text-align: left; font-size: 11px;">TOTAL:</td>
+                <td class="total-label">TOTAL:</td>
                 <td class="total-amount">Bs. {{ number_format($venta->total, 2) }}</td>
             </tr>
         </table>
@@ -176,10 +310,21 @@
 
     <div class="separator"></div>
 
+    {{-- Pie --}}
     <div class="footer">
         Gracias por su compra<br>
         {{ $venta->tienda->nombre }}<br>
         {{ $venta->created_at->format('d/m/Y H:i:s') }}
+    </div>
+
+    {{-- Integrantes --}}
+    <div class="group-box">
+        <div class="group-title">Integrantes del grupo</div>
+        Alan Marcelo Villavicencio Ponce <br>
+        Santiago Matias Daëns Hoyos <br>
+        Ignacio Daza Reyes <br>
+        Miguel Angel Lopez Arispe
+
     </div>
 
 </body>

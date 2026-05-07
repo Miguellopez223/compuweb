@@ -14,7 +14,7 @@ class ReciboController extends Controller
         $venta->load(['detalles.producto', 'tienda', 'vendedor']);
 
         $pdf = Pdf::loadView('pdf.recibo-venta', compact('venta'))
-            ->setPaper([0, 0, 226.77, 600], 'portrait'); // 80mm = 226.77pt, height auto
+            ->setPaper([0, 0, 226.77, 1100], 'portrait');
 
         return $pdf->stream("recibo-{$venta->codigo_pedido}.pdf");
     }
