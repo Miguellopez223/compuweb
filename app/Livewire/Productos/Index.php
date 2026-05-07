@@ -4,6 +4,7 @@ namespace App\Livewire\Productos;
 
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\UnidadMedida;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -40,6 +41,12 @@ class Index extends Component
     public string $imagenUrl = '';
     public array $atributos = [];
 
+    // Unidad de medida CRUD
+    public bool $showUnidadModal = false;
+    public ?int $editingUnidadId = null;
+    public string $unidadNombre = '';
+    public string $unidadAbreviatura = '';
+
     protected function rules(): array
     {
         return [
@@ -51,7 +58,7 @@ class Index extends Component
             'stock_minimo' => 'required|integer|min:0',
             'estado'       => 'required|in:Disponible,Agotado',
             'categoria_id'  => 'required|exists:categorias,id',
-            'unidad_medida' => 'required|in:unidad,kg,litro,metro',
+            'unidad_medida' => 'required|string|max:50',
             'imagen'        => 'nullable|image|max:2048',
             'imagenUrl'     => 'nullable|url',
             'atributos.*.nombre' => 'nullable|string|max:100',
@@ -210,6 +217,62 @@ class Index extends Component
         session()->flash('success', 'Producto eliminado.');
     }
 
+    // ── Unidad de medida CRUD ─────────────────────
+
+    public function openUnidadCreate(): void
+    {
+        $this->reset(['editingUnidadId', 'unidadNombre', 'unidadAbreviatura']);
+        $this->showUnidadModal = true;
+    }
+
+    public function openUnidadEdit(int $id): void
+    {
+        $u = UnidadMedida::findOrFail($id);
+        $this->editingUnidadId = $u->id;
+        $this->unidadNombre = $u->nombre;
+        $this->unidadAbreviatura = $u->abreviatura;
+        $this->showUnidadModal = true;
+    }
+
+    public function saveUnidad(): void
+    {
+        $this->validate([
+            'unidadNombre' => 'required|string|max:50',
+            'unidadAbreviatura' => 'required|string|max:10',
+        ], [
+            'unidadNombre.required' => 'El nombre es obligatorio.',
+            'unidadAbreviatura.required' => 'La abreviatura es obligatoria.',
+        ]);
+
+        $data = [
+            'tienda_id' => auth()->user()->tienda_id,
+            'nombre' => $this->unidadNombre,
+            'abreviatura' => $this->unidadAbreviatura,
+        ];
+
+        if ($this->editingUnidadId) {
+            UnidadMedida::findOrFail($this->editingUnidadId)->update($data);
+        } else {
+            UnidadMedida::create($data);
+        }
+
+        $this->showUnidadModal = false;
+        $this->reset(['editingUnidadId', 'unidadNombre', 'unidadAbreviatura']);
+    }
+
+    public function deleteUnidad(int $id): void
+    {
+        $unidad = UnidadMedida::findOrFail($id);
+        $usada = Producto::where('unidad_medida', $unidad->nombre)->exists();
+        if ($usada) {
+            session()->flash('unidad_error', 'No se puede eliminar, hay productos usando esta unidad.');
+            return;
+        }
+        $unidad->delete();
+    }
+
+    // ── Render ──────────────────────────────────────
+
     public function render()
     {
         $productos = Producto::with('categoria')
@@ -223,8 +286,9 @@ class Index extends Component
             ->paginate(12);
 
         $categorias = Categoria::all();
+        $unidades = UnidadMedida::orderBy('nombre')->get();
 
-        return view('livewire.productos.index', compact('productos', 'categorias'));
+        return view('livewire.productos.index', compact('productos', 'categorias', 'unidades'));
     }
 
     public function imagenDisplayUrl(?string $imagen): ?string

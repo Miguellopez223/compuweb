@@ -241,6 +241,25 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Unidad de medida *</label>
+                        <div class="flex gap-2">
+                            <select wire:model="unidad_medida"
+                                    class="flex-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500
+                                           {{ $errors->has('unidad_medida') ? 'border-red-400' : 'border-slate-300' }}">
+                                <option value="">Seleccionar...</option>
+                                @foreach($unidades as $u)
+                                    <option value="{{ strtolower($u->nombre) }}">{{ $u->nombre }} ({{ $u->abreviatura }})</option>
+                                @endforeach
+                            </select>
+                            <button type="button" wire:click="openUnidadCreate"
+                                    class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-500 hover:text-indigo-600 transition"
+                                    title="Gestionar unidades">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </button>
+                        </div>
+                        @error('unidad_medida') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1.5">Stock actual *</label>
                         <input wire:model="stock" type="number" min="0"
                                class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500
@@ -293,6 +312,70 @@
                         class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition">
                     Sí, eliminar
                 </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Unidades de Medida Modal --}}
+    @if($showUnidadModal)
+    <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: 60">
+        <div class="absolute inset-0 bg-black/40" wire:click="$set('showUnidadModal', false)"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-800">Unidades de Medida</h3>
+                <button wire:click="$set('showUnidadModal', false)" class="text-slate-400 hover:text-slate-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="px-6 py-4 overflow-y-auto flex-1">
+                @if(session('unidad_error'))
+                <div class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs mb-3">
+                    {{ session('unidad_error') }}
+                </div>
+                @endif
+
+                {{-- Form --}}
+                <div class="flex gap-2 mb-4">
+                    <div class="flex-1">
+                        <input wire:model="unidadNombre" type="text" placeholder="Nombre (ej: Pieza)"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        @error('unidadNombre') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="w-20">
+                        <input wire:model="unidadAbreviatura" type="text" placeholder="Abrev."
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        @error('unidadAbreviatura') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <button wire:click="saveUnidad"
+                            class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition flex-shrink-0">
+                        {{ $editingUnidadId ? 'Guardar' : 'Agregar' }}
+                    </button>
+                </div>
+
+                {{-- List --}}
+                <div class="space-y-1.5">
+                    @foreach($unidades as $u)
+                    <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-lg group">
+                        <div>
+                            <span class="text-sm font-medium text-slate-800">{{ $u->nombre }}</span>
+                            <span class="text-xs text-slate-400 ml-1.5">({{ $u->abreviatura }})</span>
+                        </div>
+                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                            <button wire:click="openUnidadEdit({{ $u->id }})"
+                                    class="p-1 text-slate-400 hover:text-indigo-600 rounded transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button wire:click="deleteUnidad({{ $u->id }})"
+                                    wire:confirm="¿Eliminar esta unidad de medida?"
+                                    class="p-1 text-slate-400 hover:text-red-600 rounded transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
