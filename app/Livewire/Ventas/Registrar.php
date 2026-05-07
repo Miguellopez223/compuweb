@@ -185,12 +185,13 @@ class Registrar extends Component
                     ]);
 
                     MovimientoInventario::create([
-                        'tienda_id'   => auth()->user()->tienda_id,
-                        'producto_id' => $producto->id,
-                        'user_id'     => auth()->id(),
-                        'tipo'        => 'salida',
-                        'cantidad'    => $item['cantidad'],
-                        'referencia'  => 'Venta #'.$venta->id,
+                        'tienda_id'       => auth()->user()->tienda_id,
+                        'producto_id'     => $producto->id,
+                        'user_id'         => auth()->id(),
+                        'tipo'            => 'salida',
+                        'cantidad'        => $item['cantidad'],
+                        'precio_unitario' => $item['precio'],
+                        'referencia'      => 'Venta #'.$venta->id,
                     ]);
                 }
             }

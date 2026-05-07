@@ -49,12 +49,13 @@ class Index extends Component
                     'estado' => 'Disponible',
                 ]);
                 MovimientoInventario::create([
-                    'tienda_id'   => auth()->user()->tienda_id,
-                    'producto_id' => $producto->id,
-                    'user_id'     => auth()->id(),
-                    'tipo'        => 'entrada',
-                    'cantidad'    => $detalle->cantidad,
-                    'referencia'  => 'Anulación de venta #'.$venta->id,
+                    'tienda_id'       => auth()->user()->tienda_id,
+                    'producto_id'     => $producto->id,
+                    'user_id'         => auth()->id(),
+                    'tipo'            => 'entrada',
+                    'cantidad'        => $detalle->cantidad,
+                    'precio_unitario' => $detalle->precio_unitario,
+                    'referencia'      => 'Anulación de venta #'.$venta->id,
                 ]);
             }
         }
