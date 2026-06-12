@@ -14,7 +14,27 @@
       "Bash(cd /mnt/c/laragon/www/compuweb && php artisan tinker --execute=\" *)",
       "Bash(composer show *)",
       "Bash(findstr scramble *)",
-      "Bash(php -r ' *)"
+      "Bash(php -r ' *)",
+      "Bash(pandoc --track-changes=all unpacked/word/document.xml -o doc_content.md)",
+      "Bash(pandoc \"C:\\\\Users\\\\Dell\\\\Documents\\\\UPB\\\\5to Semestre\\\\Practicas de Induccion Profesional\\\\Tareas\\\\Segundo Parcial\\\\Documento 3 de Mayo - Actualizado.docx\" -o doc_content.md)",
+      "Bash(python -c ' *)",
+      "Bash(java -version)",
+      "Bash(where plantuml *)",
+      "Bash(python -c \"import plantuml; print\\('plantuml module OK'\\)\")",
+      "Bash(cat)",
+      "Bash(python /tmp/fill_ch3.py)",
+      "Bash(cd C:/Users/Dell/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/cdcf0309-2ac2-4168-992a-a5fc1fbe8258/01da8d60-96fe-47e5-9ef6-f7c13e026192/skills/docx)",
+      "Bash(export PYTHONIOENCODING=utf-8)",
+      "Bash(python scripts/office/pack.py unpacked/ /tmp/CompuWeb_completado.docx --original 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo - Actualizado.docx' --validate false)",
+      "Read(//tmp/**)",
+      "Bash(cp 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo - Actualizado.docx' 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo - Actualizado \\(respaldo\\).docx')",
+      "Bash(cp C:/Users/Dell/AppData/Local/Temp/CompuWeb_completado.docx 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo - Actualizado.docx')",
+      "Bash(echo \"=== Archivos en la carpeta ===\")",
+      "Read(//c/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/**)",
+      "Bash(rm -f 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo - Actualizado \\(respaldo\\).docx')",
+      "Bash(cp C:/Users/Dell/AppData/Local/Temp/CompuWeb_completado.docx 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo - COMPLETADO.docx')",
+      "Bash(echo \"=== Resultado ===\")",
+      "Bash(ls -la 'C:/Users/Dell/Documents/UPB/5to Semestre/Practicas de Induccion Profesional/Tareas/Segundo Parcial/Documento 3 de Mayo*.docx')"
     ]
   }
 }

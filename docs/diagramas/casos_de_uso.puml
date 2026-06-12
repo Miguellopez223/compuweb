@@ -1,0 +1,92 @@
+@startuml casos_de_uso
+' Diagrama de Casos de Uso - CompuWeb
+' Plataforma SaaS multitenencia de gestion de inventarios y ventas
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+
+skinparam actor {
+  BackgroundColor #DCEAF7
+  BorderColor #2E5C8A
+}
+skinparam usecase {
+  BackgroundColor #F4F8FC
+  BorderColor #2E5C8A
+  ArrowColor #2E5C8A
+}
+
+left to right direction
+
+actor "Cliente Final\n(Publico)" as Cliente
+actor "Vendedor" as Vendedor
+actor "Administrador" as Admin
+
+' El administrador hereda todas las capacidades del vendedor
+Admin --|> Vendedor
+
+rectangle "Plataforma CompuWeb (SaaS Multitenencia)" {
+
+  ' --- Catalogo publico (sin autenticacion) ---
+  package "Catalogo Publico" {
+    usecase "Explorar catalogo\npor tienda (slug)" as UC1
+    usecase "Consultar categorias\ny productos" as UC2
+    usecase "Ver ficha tecnica\ny disponibilidad" as UC3
+    usecase "Armar carrito\nde reserva" as UC4
+    usecase "Seleccionar\nvendedor/especialista" as UC5
+    usecase "Cerrar venta asistida\nvia WhatsApp" as UC6
+  }
+
+  ' --- Operacion de ventas (token Passport) ---
+  package "Gestion de Ventas" {
+    usecase "Iniciar sesion\n(OAuth2 / Passport)" as UC7
+    usecase "Registrar venta" as UC8
+    usecase "Consultar historial\nde ventas" as UC9
+    usecase "Ver detalle\nde venta" as UC10
+    usecase "Descargar recibo\nPDF" as UC11
+    usecase "Descontar stock\n(transaccion atomica)" as UC12
+    usecase "Registrar movimiento\nde inventario" as UC13
+  }
+
+  ' --- Administracion (token + rol admin) ---
+  package "Administracion Multitenencia" {
+    usecase "Gestionar productos\n(CRUD)" as UC14
+    usecase "Gestionar categorias\n(CRUD)" as UC15
+    usecase "Registrar entradas\nde mercaderia" as UC16
+    usecase "Gestionar usuarios\ny roles" as UC17
+    usecase "Generar reportes\n(ventas e inventario)" as UC18
+    usecase "Configurar tienda" as UC19
+  }
+}
+
+' --- Asociaciones Cliente Final ---
+Cliente --> UC1
+Cliente --> UC2
+Cliente --> UC3
+Cliente --> UC4
+Cliente --> UC5
+Cliente --> UC6
+
+' --- Asociaciones Vendedor ---
+Vendedor --> UC7
+Vendedor --> UC8
+Vendedor --> UC9
+Vendedor --> UC10
+Vendedor --> UC11
+
+' --- Asociaciones Administrador ---
+Admin --> UC14
+Admin --> UC15
+Admin --> UC16
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+
+' --- Relaciones include ---
+UC8 ..> UC12 : <<include>>
+UC8 ..> UC13 : <<include>>
+UC6 ..> UC5 : <<include>>
+
+@enduml

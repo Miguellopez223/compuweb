@@ -1,0 +1,191 @@
+@startuml clases
+' Diagrama de Clases (Modelo de dominio) - CompuWeb
+' Basado en los modelos Eloquent reales del proyecto Laravel
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam linetype ortho
+
+skinparam class {
+  BackgroundColor #F4F8FC
+  BorderColor #2E5C8A
+  ArrowColor #2E5C8A
+  AttributeFontColor #333333
+}
+
+class Tienda {
+  +id : bigint
+  --
+  +nombre : string
+  +slug : string {unique}
+  +telefono_principal : string
+  +direccion : string
+  +logo : string
+  +nit : string
+  +estado : boolean
+  --
+  +users() : HasMany
+  +categorias() : HasMany
+  +productos() : HasMany
+  +ventas() : HasMany
+}
+
+class User {
+  +id : bigint
+  +tienda_id : FK
+  --
+  +name : string
+  +email : string {unique}
+  +password : hashed
+  +role : enum(admin,vendedor)
+  +whatsapp_number : string
+  +visible_catalogo : boolean
+  --
+  +tienda() : BelongsTo
+  +ventas() : HasMany
+  +movimientos() : HasMany
+}
+
+class Categoria {
+  +id : bigint
+  +tienda_id : FK
+  --
+  +nombre : string
+  --
+  +tienda() : BelongsTo
+  +productos() : HasMany
+}
+
+class Producto {
+  +id : bigint
+  +tienda_id : FK
+  +categoria_id : FK
+  --
+  +nombre : string
+  +sku : string
+  +descripcion : text
+  +imagen : string
+  +precio : decimal(10,2)
+  +precio_costo : decimal(10,2)
+  +stock : integer
+  +stock_minimo : integer
+  +unidad_medida : string
+  +estado : string
+  --
+  +getImagenUrlAttribute()
+  +categoria() : BelongsTo
+  +atributos() : HasMany
+  +detallesVenta() : HasMany
+  +movimientos() : HasMany
+}
+
+class AtributoProducto {
+  +id : bigint
+  +producto_id : FK
+  --
+  +nombre : string
+  +valor : string
+  --
+  +producto() : BelongsTo
+}
+
+class UnidadMedida {
+  +id : bigint
+  +tienda_id : FK
+  --
+  +nombre : string
+  +abreviatura : string
+  --
+  +productos() : HasMany
+}
+
+class Cliente {
+  +id : bigint
+  +tienda_id : FK
+  --
+  +nombre : string
+  +ci_nit : string
+  +telefono : string
+  +email : string
+  +estado : boolean
+  --
+  +ventas() : HasMany
+}
+
+class Venta {
+  +id : bigint
+  +tienda_id : FK
+  +vendedor_id : FK
+  +cliente_id : FK
+  --
+  +codigo_pedido : string
+  +cliente_nombre : string
+  +cliente_telefono : string
+  +cliente_email : string
+  +cliente_nit : string
+  +total : decimal(10,2)
+  +metodo_pago : string
+  +estado_venta : enum(Completada,Anulada)
+  --
+  +vendedor() : BelongsTo
+  +cliente() : BelongsTo
+  +detalles() : HasMany
+}
+
+class DetalleVenta {
+  +id : bigint
+  +venta_id : FK
+  +producto_id : FK
+  --
+  +cantidad : integer
+  +precio_unitario : decimal(10,2)
+  --
+  +venta() : BelongsTo
+  +producto() : BelongsTo
+}
+
+class MovimientoInventario {
+  +id : bigint
+  +tienda_id : FK
+  +producto_id : FK
+  +user_id : FK
+  --
+  +tipo : enum(entrada,salida)
+  +cantidad : integer
+  +precio_unitario : decimal(10,2)
+  +proveedor : string
+  +referencia : string
+  --
+  +producto() : BelongsTo
+  +user() : BelongsTo
+}
+
+' --- Relaciones (multitenencia: todo cuelga de Tienda) ---
+Tienda "1" o-- "*" User
+Tienda "1" o-- "*" Categoria
+Tienda "1" o-- "*" Producto
+Tienda "1" o-- "*" Venta
+Tienda "1" o-- "*" Cliente
+Tienda "1" o-- "*" UnidadMedida
+
+Categoria "1" o-- "*" Producto
+Producto "1" *-- "*" AtributoProducto
+UnidadMedida "1" o-- "*" Producto
+
+User "1" o-- "*" Venta : vendedor
+User "1" o-- "*" MovimientoInventario
+Cliente "1" o-- "*" Venta
+
+Venta "1" *-- "*" DetalleVenta
+Producto "1" o-- "*" DetalleVenta
+Producto "1" o-- "*" MovimientoInventario
+
+note bottom of Tienda
+  Aislamiento multitenencia:
+  TiendaScope (Global Scope de Eloquent)
+  filtra automaticamente por tienda_id
+end note
+
+@enduml
