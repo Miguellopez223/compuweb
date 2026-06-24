@@ -89,7 +89,15 @@
                     <div class="space-y-2">
                         @foreach($vendedores as $v)
                         @php
-                            $waMsg = urlencode("Hola *{$v['name']}*, estoy viendo el producto:\n\n*{$producto->nombre}*\nPrecio: Bs. " . number_format($producto->precio, 2) . "\n\nMe gustaria mas informacion.");
+                            $waMsg = urlencode(
+                                "🛒 *CONSULTA DE PRODUCTO*\n" .
+                                "🏪 {$tienda->nombre}\n\n" .
+                                "¡Hola {$v['name']}! Estoy interesado(a) en este producto:\n\n" .
+                                "📦 *{$producto->nombre}*\n" .
+                                ($producto->sku ? "🔖 SKU: {$producto->sku}\n" : "") .
+                                "💰 Precio: Bs. " . number_format($producto->precio, 2) . "\n\n" .
+                                "¿Está disponible? Me gustaría coordinar la compra (pago y entrega). ¡Gracias! 🙌"
+                            );
                             $waPhone = preg_replace('/[^0-9]/', '', $v['whatsapp_number']);
                         @endphp
                         <a href="https://wa.me/{{ $waPhone }}?text={{ $waMsg }}"
@@ -109,7 +117,15 @@
                 </div>
                 @else
                 @php
-                    $waMsg = urlencode("Hola *{$tienda->nombre}*, me interesa:\n\n*{$producto->nombre}* - Bs. " . number_format($producto->precio, 2) . "\n\nEsta disponible?");
+                    $waMsg = urlencode(
+                        "🛒 *CONSULTA DE PRODUCTO*\n" .
+                        "🏪 {$tienda->nombre}\n\n" .
+                        "¡Hola! Estoy interesado(a) en este producto:\n\n" .
+                        "📦 *{$producto->nombre}*\n" .
+                        ($producto->sku ? "🔖 SKU: {$producto->sku}\n" : "") .
+                        "💰 Precio: Bs. " . number_format($producto->precio, 2) . "\n\n" .
+                        "¿Está disponible? Me gustaría coordinar la compra. ¡Gracias! 🙌"
+                    );
                     $waPhone = preg_replace('/[^0-9]/', '', $tienda->telefono_principal ?? '');
                 @endphp
                 <a href="https://wa.me/{{ $waPhone }}?text={{ $waMsg }}"

@@ -340,7 +340,8 @@ npm install package-name   # Add new package
 - **Atomic stock deduction**: When registering a sale, stock must be decremented inside a DB transaction. If the transaction fails, nothing should commit. This is the core integrity guarantee of the system.
 - **Silencio informativo is the enemy**: The system exists to prevent the state where a product shows as available in the catalog but is out of stock physically. Any feature touching inventory or sales must maintain this real-time consistency.
 - **Migrations are committed**: Always commit migrations; they are the source of truth for schema.
-- **Demo seeder**: `TercerTiempoSeeder` — a fully populated bar/restaurant store ("Tercer Tiempo") with products, categories, users, and sales. Good for testing all features. Admin credentials: `alejandro@tercertiempo.com` / `password`.
+- **Demo seeder**: `TercerTiempoSeeder` — a fully populated bar/restaurant store ("Tercer Tiempo") with products, categories, users, and sales. Good for testing all features. Admin credentials: `miguel@tercertiempo.com` / `admin123` (vendedores: `ignacio@tercertiempo.com`, `santiago@tercertiempo.com` / `vendedor123`). The three users are also the catalog's WhatsApp contacts (real +591 numbers).
+- **Extra report data**: `DatosPruebaReportesSeeder` — additive, idempotent seeder that generates ~140 extra sales across 120 days, demo clients, supplier entries, NITs and some voided sales to populate every report. Run: `php artisan db:seed --class=DatosPruebaReportesSeeder`.
 - **Livewire vs API**: Livewire for the admin panel (session auth); API for the public catalog and external clients (Passport token auth).
 - **Stock tracking**: Every stock change goes through `MovimientoInventario`. Never update `Producto.stock` directly without creating a movement record.
 - **Dynamic attributes**: `AtributoProducto` and `UnidadMedida` allow the catalog to serve stores beyond the original tech-store use case (e.g., bars, restaurants).

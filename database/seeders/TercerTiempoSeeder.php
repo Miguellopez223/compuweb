@@ -27,7 +27,7 @@ class TercerTiempoSeeder extends Seeder
                 [
                     'nombre'             => 'Tercer Tiempo',
                     'slug'               => 'tercertiempo',
-                    'telefono_principal' => '59171234567',
+                    'telefono_principal' => '59175359849',
                     'estado'             => true,
                 ]
             );
@@ -65,31 +65,31 @@ class TercerTiempoSeeder extends Seeder
     {
         $admin = User::create([
             'tienda_id'        => $this->tid,
-            'name'             => 'Alejandro Rodriguez',
-            'email'            => 'alejandro@tercertiempo.com',
+            'name'             => 'Miguel Angel Lopez',
+            'email'            => 'miguel@tercertiempo.com',
             'password'         => Hash::make('admin123'),
             'role'             => 'admin',
-            'whatsapp_number'  => '59171234567',
+            'whatsapp_number'  => '59175359849',
             'visible_catalogo' => true,
         ]);
 
         $v1 = User::create([
             'tienda_id'        => $this->tid,
-            'name'             => 'Carlos Mendoza',
-            'email'            => 'carlos@tercertiempo.com',
+            'name'             => 'Ignacio Daza',
+            'email'            => 'ignacio@tercertiempo.com',
             'password'         => Hash::make('vendedor123'),
             'role'             => 'vendedor',
-            'whatsapp_number'  => '59178901234',
+            'whatsapp_number'  => '59161508744',
             'visible_catalogo' => true,
         ]);
 
         $v2 = User::create([
             'tienda_id'        => $this->tid,
-            'name'             => 'Ana Torrez',
-            'email'            => 'ana@tercertiempo.com',
+            'name'             => 'Santiago Daens',
+            'email'            => 'santiago@tercertiempo.com',
             'password'         => Hash::make('vendedor123'),
             'role'             => 'vendedor',
-            'whatsapp_number'  => '59176543210',
+            'whatsapp_number'  => '59161383247',
             'visible_catalogo' => true,
         ]);
 

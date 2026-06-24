@@ -7,7 +7,11 @@
                 'dashboard' => ['Dashboard', 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
                 'ventas' => ['Rendimiento Ventas', 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 'productos' => ['Inteligencia Productos', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+                'rentabilidad' => ['Rentabilidad / ABC', 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+                'clientes' => ['Clientes', 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'],
+                'proveedores' => ['Proveedores', 'M19 14l-7 7m0 0l-7-7m7 7V3'],
                 'vendedores' => ['Vendedores', 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
+                'fiscal' => ['Libro de Ventas', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
                 'movimientos' => ['Movimientos', 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'],
             ] as $tab => [$label, $icon])
                 <button wire:click="$set('activeTab', '{{ $tab }}')"
@@ -99,6 +103,33 @@
             </div>
             <p class="text-xs text-slate-400 mt-3 text-center">Hora del día (00–23) — más oscuro = más ventas</p>
         </div>
+
+        {{-- Heat map: Ventas por día de la semana --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <h3 class="text-sm font-semibold text-slate-800 mb-4">Ventas por Día de la Semana</h3>
+            @php
+                $diasSemana = [1 => 'Dom', 2 => 'Lun', 3 => 'Mar', 4 => 'Mié', 5 => 'Jue', 6 => 'Vie', 7 => 'Sáb'];
+                $maxDow = max($dowData) ?: 1;
+            @endphp
+            <div class="grid grid-cols-7 gap-2">
+                @foreach($diasSemana as $num => $nombre)
+                    @php
+                        $val = $dowData[$num] ?? 0;
+                        $intensidad = $val / $maxDow;
+                        if ($intensidad === 0) $bgClass = 'bg-slate-100 text-slate-400';
+                        elseif ($intensidad < 0.25) $bgClass = 'bg-emerald-100 text-emerald-700';
+                        elseif ($intensidad < 0.5) $bgClass = 'bg-emerald-200 text-emerald-800';
+                        elseif ($intensidad < 0.75) $bgClass = 'bg-emerald-400 text-white';
+                        else $bgClass = 'bg-emerald-600 text-white';
+                    @endphp
+                    <div class="rounded-lg p-3 text-center {{ $bgClass }}">
+                        <p class="text-xs font-semibold">{{ $nombre }}</p>
+                        <p class="text-lg font-bold">{{ $val }}</p>
+                    </div>
+                @endforeach
+            </div>
+            <p class="text-xs text-slate-400 mt-3 text-center">Número de ventas por día — más oscuro = más ventas</p>
+        </div>
     </div>
 
     {{-- Chart.js data injection --}}
@@ -148,6 +179,33 @@
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ticket Promedio</p>
                 <p class="text-2xl font-bold text-slate-800 mt-1">Bs. {{ number_format($ticketPromedio, 2) }}</p>
                 <p class="text-xs text-slate-400 mt-0.5">por transacción</p>
+            </div>
+        </div>
+
+        {{-- Secondary KPIs --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Unidades Vendidas</p>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $unidadesVendidas }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">ítems despachados</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Unidades / Venta</p>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ number_format($unidadesPromedio, 1) }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">promedio por ticket</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-red-200 bg-red-50 p-5">
+                <p class="text-xs font-semibold text-red-500 uppercase tracking-wide">Ventas Anuladas</p>
+                <p class="text-2xl font-bold text-red-600 mt-1">{{ $numAnuladas }}</p>
+                <p class="text-xs text-red-400 mt-0.5">Bs. {{ number_format($montoAnulado, 2) }} revertidos</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border p-5
+                        {{ $cambioMensual >= 0 ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50' }}">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Mes vs. Mes Anterior</p>
+                <p class="text-2xl font-bold mt-1 {{ $cambioMensual >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
+                    {{ $cambioMensual >= 0 ? '+' : '' }}{{ number_format($cambioMensual, 1) }}%
+                </p>
+                <p class="text-xs text-slate-400 mt-0.5">Bs. {{ number_format($ventasMesActual, 2) }} este mes</p>
             </div>
         </div>
 
@@ -359,6 +417,48 @@
                 </table>
             </div>
         </div>
+
+        {{-- Rotación de inventario --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-800 text-sm">Rotación de Inventario y Cobertura</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Índice de rotación = unidades vendidas (30 días) ÷ stock actual · Cobertura = días que dura el stock al ritmo actual</p>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                        <tr>
+                            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Producto</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Vendidos (30d)</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Stock</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Índice Rotación</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Cobertura</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($rotacionProductos as $rp)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-2.5 font-medium text-slate-800">{{ $rp->nombre }}</td>
+                            <td class="px-4 py-2.5 text-right text-slate-600">{{ $rp->vendidos }}</td>
+                            <td class="px-4 py-2.5 text-right text-slate-600">{{ $rp->stock }}</td>
+                            <td class="px-4 py-2.5 text-right font-semibold text-indigo-600">{{ number_format($rp->rotacion, 2) }}x</td>
+                            <td class="px-4 py-2.5 text-right">
+                                @if($rp->cobertura === null)
+                                    <span class="text-slate-400">—</span>
+                                @else
+                                    <span class="font-medium {{ $rp->cobertura < 7 ? 'text-red-600' : ($rp->cobertura < 15 ? 'text-amber-600' : 'text-slate-600') }}">
+                                        {{ number_format($rp->cobertura, 0) }} días
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Sin ventas en los últimos 30 días</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     @endif
 
@@ -537,6 +637,430 @@
             @if($movimientos->hasPages())
             <div class="px-5 py-3 border-t border-slate-100">{{ $movimientos->links() }}</div>
             @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- ============================================== --}}
+    {{-- TAB: RENTABILIDAD / ABC --}}
+    {{-- ============================================== --}}
+    @if($activeTab === 'rentabilidad')
+    <div class="space-y-4">
+        {{-- Date filters --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Desde</label>
+                <input wire:model.live="vtaFechaDesde" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Hasta</label>
+                <input wire:model.live="vtaFechaHasta" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        {{-- ABC summary --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl shadow-sm border border-emerald-200 p-5">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Clase A</p>
+                    <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">A</span>
+                </div>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $resumenAbc['A'] }} productos</p>
+                <p class="text-xs text-slate-400 mt-0.5">Generan ~80% de los ingresos</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-amber-200 p-5">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide">Clase B</p>
+                    <span class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">B</span>
+                </div>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $resumenAbc['B'] }} productos</p>
+                <p class="text-xs text-slate-400 mt-0.5">Siguiente ~15% de los ingresos</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Clase C</p>
+                    <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm">C</span>
+                </div>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $resumenAbc['C'] }} productos</p>
+                <p class="text-xs text-slate-400 mt-0.5">Último ~5% de los ingresos</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {{-- Rentabilidad por producto --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-5 py-4 border-b border-slate-100">
+                    <h3 class="font-semibold text-slate-800 text-sm">Productos Más Rentables</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Ordenado por utilidad generada</p>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                            <tr>
+                                <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Producto</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Ingresos</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Utilidad</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($rentProductos as $rp)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-2.5 font-medium text-slate-800">{{ $rp->nombre }}</td>
+                                <td class="px-4 py-2.5 text-right text-slate-600">Bs. {{ number_format($rp->ingresos, 2) }}</td>
+                                <td class="px-4 py-2.5 text-right font-semibold text-emerald-600">Bs. {{ number_format($rp->utilidad, 2) }}</td>
+                                <td class="px-4 py-2.5 text-right text-slate-600">{{ $rp->ingresos > 0 ? number_format(($rp->utilidad / $rp->ingresos) * 100, 1) : 0 }}%</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="px-4 py-8 text-center text-slate-400">Sin ventas en el periodo</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Rentabilidad por categoría --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-5 py-4 border-b border-slate-100">
+                    <h3 class="font-semibold text-slate-800 text-sm">Rentabilidad por Categoría</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Utilidad agrupada por categoría</p>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                            <tr>
+                                <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Categoría</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Ingresos</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Utilidad</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($rentCategorias as $rc)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-2.5 font-medium text-slate-800">{{ $rc->nombre }}</td>
+                                <td class="px-4 py-2.5 text-right text-slate-600">Bs. {{ number_format($rc->ingresos, 2) }}</td>
+                                <td class="px-4 py-2.5 text-right font-semibold text-emerald-600">Bs. {{ number_format($rc->utilidad, 2) }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Sin datos</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- Tabla ABC completa --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-800 text-sm">Clasificación ABC (Análisis de Pareto)</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Productos ordenados por contribución acumulada a los ingresos</p>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                        <tr>
+                            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Producto</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Ingresos</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">% Acumulado</th>
+                            <th class="text-center px-4 py-2.5 text-xs font-semibold text-slate-500">Clase</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($abc as $item)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-2.5 font-medium text-slate-800">{{ $item->nombre }}</td>
+                            <td class="px-4 py-2.5 text-right text-slate-600">Bs. {{ number_format($item->ingresos, 2) }}</td>
+                            <td class="px-4 py-2.5 text-right text-slate-500">{{ number_format($item->pct_acumulado, 1) }}%</td>
+                            <td class="px-4 py-2.5 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-bold
+                                    {{ $item->clase === 'A' ? 'bg-emerald-100 text-emerald-700' : ($item->clase === 'B' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600') }}">
+                                    {{ $item->clase }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="4" class="px-4 py-8 text-center text-slate-400">Sin ventas en el periodo</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ============================================== --}}
+    {{-- TAB: CLIENTES --}}
+    {{-- ============================================== --}}
+    @if($activeTab === 'clientes')
+    <div class="space-y-4">
+        {{-- Filters --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Desde</label>
+                <input wire:model.live="vtaFechaDesde" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Hasta</label>
+                <input wire:model.live="vtaFechaHasta" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        {{-- KPI cards --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-indigo-600 rounded-xl p-5 text-white">
+                <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wide">Total Clientes</p>
+                <p class="text-2xl font-bold mt-1">{{ $totalClientes }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Recurrentes</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-1">{{ $recurrentes }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">más de 1 compra</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">De Una Compra</p>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $nuevos }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">oportunidad de fidelizar</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-amber-200 bg-amber-50 p-5">
+                <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide">Inactivos</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">{{ $clientesInactivos->count() }}</p>
+                <p class="text-xs text-amber-500 mt-0.5">sin comprar hace +{{ $diasClienteInactivo }} días</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {{-- Top compradores --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-5 py-4 border-b border-slate-100">
+                    <h3 class="font-semibold text-slate-800 text-sm">Top 10 — Mejores Clientes</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Por monto gastado en el periodo</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">#</th>
+                                <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Cliente</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Compras</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Total Gastado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($topClientes as $tc)
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-2.5">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
+                                        {{ $loop->iteration <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600' }}">
+                                        {{ $loop->iteration }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2.5 font-medium text-slate-800">{{ $tc->cliente->nombre ?? 'Cliente eliminado' }}</td>
+                                <td class="px-4 py-2.5 text-right text-slate-600">{{ $tc->num_compras }}</td>
+                                <td class="px-4 py-2.5 text-right font-semibold text-emerald-600">Bs. {{ number_format($tc->total_gastado, 2) }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="px-4 py-8 text-center text-slate-400">Sin compras de clientes registrados en el periodo</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Clientes inactivos --}}
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold text-slate-800 text-sm">Clientes Inactivos</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Candidatos a reactivación</p>
+                    </div>
+                    <select wire:model.live="diasClienteInactivo" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="30">30 días</option>
+                        <option value="60">60 días</option>
+                        <option value="90">90 días</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                            <tr>
+                                <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Cliente</th>
+                                <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Teléfono</th>
+                                <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Compras totales</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($clientesInactivos as $ci)
+                            <tr class="hover:bg-amber-50/50">
+                                <td class="px-4 py-2.5 font-medium text-slate-800">{{ $ci->nombre }}</td>
+                                <td class="px-4 py-2.5 text-slate-600">{{ $ci->telefono ?: '—' }}</td>
+                                <td class="px-4 py-2.5 text-right text-slate-600">{{ $ci->ventas_count }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="px-4 py-8 text-center text-emerald-500 font-medium">No hay clientes inactivos</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ============================================== --}}
+    {{-- TAB: PROVEEDORES --}}
+    {{-- ============================================== --}}
+    @if($activeTab === 'proveedores')
+    <div class="space-y-4">
+        {{-- Filters --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Desde</label>
+                <input wire:model.live="vtaFechaDesde" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Hasta</label>
+                <input wire:model.live="vtaFechaHasta" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        <div class="bg-indigo-600 rounded-xl p-5 text-white max-w-xs">
+            <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wide">Total Compras a Proveedores</p>
+            <p class="text-2xl font-bold mt-1">Bs. {{ number_format($totalCompras, 2) }}</p>
+            <p class="text-xs text-indigo-200 mt-0.5">mercadería ingresada en el periodo</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h3 class="font-semibold text-slate-800 text-sm">Compras por Proveedor</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Volumen y costo de las entradas de mercadería</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">#</th>
+                            <th class="text-left px-4 py-2.5 text-xs font-semibold text-slate-500">Proveedor</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Entradas</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Unidades</th>
+                            <th class="text-right px-4 py-2.5 text-xs font-semibold text-slate-500">Costo Total</th>
+                            <th class="px-4 py-2.5 text-xs font-semibold text-slate-500">Participación</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($compras as $c)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-2.5">
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
+                                    {{ $loop->iteration <= 3 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600' }}">
+                                    {{ $loop->iteration }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2.5 font-medium text-slate-800">{{ $c->proveedor }}</td>
+                            <td class="px-4 py-2.5 text-right text-slate-600">{{ $c->num_entradas }}</td>
+                            <td class="px-4 py-2.5 text-right text-slate-600">{{ $c->unidades }}</td>
+                            <td class="px-4 py-2.5 text-right font-semibold text-slate-800">Bs. {{ number_format($c->costo_total, 2) }}</td>
+                            <td class="px-4 py-2.5">
+                                @if($totalCompras > 0)
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-indigo-500 h-2 rounded-full" style="width: {{ ($c->costo_total / $totalCompras) * 100 }}%"></div>
+                                </div>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Sin entradas de mercadería con proveedor en el periodo</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ============================================== --}}
+    {{-- TAB: LIBRO DE VENTAS (FISCAL) --}}
+    {{-- ============================================== --}}
+    @if($activeTab === 'fiscal')
+    <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h2 class="text-lg font-bold text-slate-800">Libro de Ventas (Facturación)</h2>
+                <p class="text-sm text-slate-500">Ventas con NIT/CI para conciliación fiscal</p>
+            </div>
+            <button wire:click="exportarFiscalCsv"
+                    class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Exportar CSV (Excel)
+            </button>
+        </div>
+
+        {{-- Filters --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Desde</label>
+                <input wire:model.live="vtaFechaDesde" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Hasta</label>
+                <input wire:model.live="vtaFechaHasta" type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        {{-- KPI cards --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-emerald-600 rounded-xl p-5 text-white">
+                <p class="text-xs font-semibold text-emerald-200 uppercase tracking-wide">Total Facturado</p>
+                <p class="text-2xl font-bold mt-1">Bs. {{ number_format($totalFacturado, 2) }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ventas con NIT</p>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $countFacturado }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ventas sin NIT</p>
+                <p class="text-2xl font-bold text-slate-800 mt-1">{{ $sinNit }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">no facturadas</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Fecha</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Código</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Cliente</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">NIT/CI</th>
+                            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Pago</th>
+                            <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($ventasFacturadas as $v)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 text-slate-500 text-xs">{{ $v->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-slate-600">{{ $v->codigo_pedido }}</td>
+                            <td class="px-4 py-3 font-medium text-slate-800">{{ $v->cliente_nombre }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ $v->cliente_nit }}</td>
+                            <td class="px-4 py-3 text-slate-600 capitalize">{{ $v->metodo_pago }}</td>
+                            <td class="px-4 py-3 text-right font-semibold text-slate-800">Bs. {{ number_format($v->total, 2) }}</td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="6" class="px-4 py-12 text-center text-slate-400">No hay ventas facturadas (con NIT) en el periodo</td></tr>
+                        @endforelse
+                    </tbody>
+                    @if($ventasFacturadas->isNotEmpty())
+                    <tfoot class="bg-slate-50 border-t border-slate-200">
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total Facturado</td>
+                            <td class="px-4 py-3 text-right font-bold text-emerald-600">Bs. {{ number_format($totalFacturado, 2) }}</td>
+                        </tr>
+                    </tfoot>
+                    @endif
+                </table>
+            </div>
         </div>
     </div>
     @endif

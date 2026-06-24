@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Reportes;
 
+use App\Models\Cliente;
 use App\Models\DetalleVenta;
 use App\Models\MovimientoInventario;
 use App\Models\Producto;
@@ -34,6 +35,9 @@ class Index extends Component
 
     // Productos filters
     public int $diasSinMovimiento = 30;
+
+    // Clientes filters
+    public int $diasClienteInactivo = 30;
 
     // Dashboard filters
     public string $dashPeriodo = '7';
@@ -113,7 +117,39 @@ class Index extends Component
             ->orderByDesc('ingresos')
             ->get();
 
-        return compact('totalVentas', 'ingresosBrutos', 'costoVentas', 'utilidadBruta', 'ticketPromedio', 'margenPorcentaje', 'porMetodoPago');
+        // Anulaciones en el periodo
+        $anuladas = Venta::where('estado_venta', 'Anulada')
+            ->when($this->vtaFechaDesde, fn($q) => $q->whereDate('created_at', '>=', $this->vtaFechaDesde))
+            ->when($this->vtaFechaHasta, fn($q) => $q->whereDate('created_at', '<=', $this->vtaFechaHasta));
+        $numAnuladas = (clone $anuladas)->count();
+        $montoAnulado = (clone $anuladas)->sum('total');
+
+        // Unidades vendidas e items promedio por venta
+        $unidadesVendidas = DetalleVenta::whereHas('venta', function ($q) {
+                $q->where('estado_venta', 'Completada')
+                    ->when($this->vtaFechaDesde, fn($q2) => $q2->whereDate('created_at', '>=', $this->vtaFechaDesde))
+                    ->when($this->vtaFechaHasta, fn($q2) => $q2->whereDate('created_at', '<=', $this->vtaFechaHasta));
+            })->sum('cantidad');
+        $unidadesPromedio = $totalVentas > 0 ? $unidadesVendidas / $totalVentas : 0;
+
+        // Comparativa mes actual vs mes anterior
+        $inicioMesActual = now()->startOfMonth();
+        $inicioMesAnterior = now()->subMonthNoOverflow()->startOfMonth();
+        $finMesAnterior = now()->subMonthNoOverflow()->endOfMonth();
+        $ventasMesActual = Venta::where('estado_venta', 'Completada')
+            ->where('created_at', '>=', $inicioMesActual)->sum('total');
+        $ventasMesAnterior = Venta::where('estado_venta', 'Completada')
+            ->whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->sum('total');
+        $cambioMensual = $ventasMesAnterior > 0
+            ? (($ventasMesActual - $ventasMesAnterior) / $ventasMesAnterior) * 100
+            : ($ventasMesActual > 0 ? 100 : 0);
+
+        return compact(
+            'totalVentas', 'ingresosBrutos', 'costoVentas', 'utilidadBruta', 'ticketPromedio',
+            'margenPorcentaje', 'porMetodoPago', 'numAnuladas', 'montoAnulado',
+            'unidadesVendidas', 'unidadesPromedio',
+            'ventasMesActual', 'ventasMesAnterior', 'cambioMensual'
+        );
     }
 
     private function getProductosData(): array
@@ -167,7 +203,35 @@ class Index extends Component
             ->orderBy('stock')
             ->get();
 
-        return compact('bestSellers', 'productosMuertos', 'valorizacion', 'stockCritico');
+        // Rotacion de inventario y dias de cobertura (ultimos 30 dias)
+        $vendidos30 = DetalleVenta::join('ventas', 'detalle_ventas.venta_id', '=', 'ventas.id')
+            ->where('ventas.tienda_id', $tiendaId)
+            ->where('ventas.estado_venta', 'Completada')
+            ->where('ventas.created_at', '>=', now()->subDays(30))
+            ->select('detalle_ventas.producto_id', DB::raw('SUM(detalle_ventas.cantidad) as vendidos'))
+            ->groupBy('detalle_ventas.producto_id')
+            ->pluck('vendidos', 'detalle_ventas.producto_id');
+
+        $rotacionProductos = Producto::select('id', 'nombre', 'stock')->get()
+            ->map(function ($p) use ($vendidos30) {
+                $vendidos = (int) ($vendidos30[$p->id] ?? 0);
+                $promDiario = $vendidos / 30;
+                $rotacion = $p->stock > 0 ? $vendidos / $p->stock : 0;
+                $cobertura = $promDiario > 0 ? $p->stock / $promDiario : null;
+                return (object) [
+                    'nombre'    => $p->nombre,
+                    'stock'     => $p->stock,
+                    'vendidos'  => $vendidos,
+                    'rotacion'  => $rotacion,
+                    'cobertura' => $cobertura,
+                ];
+            })
+            ->filter(fn ($p) => $p->vendidos > 0)
+            ->sortByDesc('rotacion')
+            ->take(15)
+            ->values();
+
+        return compact('bestSellers', 'productosMuertos', 'valorizacion', 'stockCritico', 'rotacionProductos');
     }
 
     private function getVendedoresData(): array
@@ -256,11 +320,205 @@ class Index extends Component
             ? (($ventasSemanaActual - $ventasSemanaAnterior) / $ventasSemanaAnterior) * 100
             : ($ventasSemanaActual > 0 ? 100 : 0);
 
+        // Ventas por dia de la semana (MySQL DAYOFWEEK: 1=Domingo ... 7=Sabado)
+        $ventasPorDow = Venta::where('estado_venta', 'Completada')
+            ->where('created_at', '>=', $fechaInicio)
+            ->select(DB::raw('DAYOFWEEK(created_at) as dow'), DB::raw('COUNT(*) as total'))
+            ->groupBy('dow')
+            ->get()
+            ->keyBy('dow');
+        $dowData = [];
+        for ($d = 1; $d <= 7; $d++) {
+            $dowData[$d] = $ventasPorDow[$d]->total ?? 0;
+        }
+
         return compact(
             'labels', 'dataVentas', 'dataIngresos',
-            'ventasPorCategoria', 'horasData',
+            'ventasPorCategoria', 'horasData', 'dowData',
             'ventasSemanaActual', 'ventasSemanaAnterior', 'cambioSemanal'
         );
+    }
+
+    private function getClientesData(): array
+    {
+        $desde = $this->vtaFechaDesde;
+        $hasta = $this->vtaFechaHasta;
+
+        // Top compradores del periodo
+        $topClientes = Venta::where('estado_venta', 'Completada')
+            ->whereNotNull('cliente_id')
+            ->when($desde, fn ($q) => $q->whereDate('created_at', '>=', $desde))
+            ->when($hasta, fn ($q) => $q->whereDate('created_at', '<=', $hasta))
+            ->select('cliente_id', DB::raw('COUNT(*) as num_compras'), DB::raw('SUM(total) as total_gastado'))
+            ->groupBy('cliente_id')
+            ->orderByDesc('total_gastado')
+            ->with('cliente:id,nombre,telefono')
+            ->limit(10)
+            ->get();
+
+        // Nuevos vs recurrentes (sobre todo el historial)
+        $comprasPorCliente = Venta::where('estado_venta', 'Completada')
+            ->whereNotNull('cliente_id')
+            ->select('cliente_id', DB::raw('COUNT(*) as c'))
+            ->groupBy('cliente_id')
+            ->get();
+        $recurrentes = $comprasPorCliente->where('c', '>', 1)->count();
+        $nuevos = $comprasPorCliente->where('c', 1)->count();
+
+        // Inactivos: clientes que compraron alguna vez pero no en los ultimos N dias
+        $fechaCorte = now()->subDays($this->diasClienteInactivo);
+        $clientesActivos = Venta::where('estado_venta', 'Completada')
+            ->where('created_at', '>=', $fechaCorte)
+            ->whereNotNull('cliente_id')
+            ->pluck('cliente_id')
+            ->unique();
+        $clientesInactivos = Cliente::whereNotIn('id', $clientesActivos->all() ?: [0])
+            ->whereHas('ventas')
+            ->withCount('ventas')
+            ->get();
+
+        $totalClientes = Cliente::count();
+
+        return compact('topClientes', 'recurrentes', 'nuevos', 'clientesInactivos', 'totalClientes');
+    }
+
+    private function getProveedoresData(): array
+    {
+        $desde = $this->vtaFechaDesde;
+        $hasta = $this->vtaFechaHasta;
+
+        $compras = MovimientoInventario::where('tipo', 'entrada')
+            ->whereNotNull('proveedor')
+            ->where('proveedor', '!=', '')
+            ->when($desde, fn ($q) => $q->whereDate('created_at', '>=', $desde))
+            ->when($hasta, fn ($q) => $q->whereDate('created_at', '<=', $hasta))
+            ->select(
+                'proveedor',
+                DB::raw('COUNT(*) as num_entradas'),
+                DB::raw('SUM(cantidad) as unidades'),
+                DB::raw('SUM(cantidad * COALESCE(precio_unitario, 0)) as costo_total')
+            )
+            ->groupBy('proveedor')
+            ->orderByDesc('costo_total')
+            ->get();
+
+        $totalCompras = $compras->sum('costo_total');
+
+        return compact('compras', 'totalCompras');
+    }
+
+    private function getRentabilidadData(): array
+    {
+        $tiendaId = auth()->user()->tienda_id;
+        $desde = $this->vtaFechaDesde;
+        $hasta = $this->vtaFechaHasta;
+
+        $base = DetalleVenta::join('ventas', 'detalle_ventas.venta_id', '=', 'ventas.id')
+            ->join('productos', 'detalle_ventas.producto_id', '=', 'productos.id')
+            ->where('ventas.tienda_id', $tiendaId)
+            ->where('ventas.estado_venta', 'Completada')
+            ->when($desde, fn ($q) => $q->whereDate('ventas.created_at', '>=', $desde))
+            ->when($hasta, fn ($q) => $q->whereDate('ventas.created_at', '<=', $hasta));
+
+        $rentProductos = (clone $base)
+            ->select(
+                'productos.id',
+                'productos.nombre',
+                DB::raw('SUM(detalle_ventas.cantidad) as unidades'),
+                DB::raw('SUM(detalle_ventas.cantidad * detalle_ventas.precio_unitario) as ingresos'),
+                DB::raw('SUM(detalle_ventas.cantidad * productos.precio_costo) as costo'),
+                DB::raw('SUM(detalle_ventas.cantidad * (detalle_ventas.precio_unitario - productos.precio_costo)) as utilidad')
+            )
+            ->groupBy('productos.id', 'productos.nombre')
+            ->orderByDesc('utilidad')
+            ->get();
+
+        $rentCategorias = (clone $base)
+            ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->select(
+                'categorias.nombre',
+                DB::raw('SUM(detalle_ventas.cantidad * detalle_ventas.precio_unitario) as ingresos'),
+                DB::raw('SUM(detalle_ventas.cantidad * (detalle_ventas.precio_unitario - productos.precio_costo)) as utilidad')
+            )
+            ->groupBy('categorias.nombre')
+            ->orderByDesc('utilidad')
+            ->get();
+
+        // Analisis ABC (Pareto) por ingresos acumulados
+        $ordenados = $rentProductos->sortByDesc('ingresos')->values();
+        $totalIngresos = $ordenados->sum('ingresos');
+        $acumulado = 0;
+        $abc = $ordenados->map(function ($p) use (&$acumulado, $totalIngresos) {
+            $acumulado += $p->ingresos;
+            $pctAcum = $totalIngresos > 0 ? ($acumulado / $totalIngresos) * 100 : 0;
+            $clase = $pctAcum <= 80 ? 'A' : ($pctAcum <= 95 ? 'B' : 'C');
+            return (object) [
+                'nombre'        => $p->nombre,
+                'ingresos'      => $p->ingresos,
+                'pct_acumulado' => $pctAcum,
+                'clase'         => $clase,
+            ];
+        });
+        $resumenAbc = [
+            'A' => $abc->where('clase', 'A')->count(),
+            'B' => $abc->where('clase', 'B')->count(),
+            'C' => $abc->where('clase', 'C')->count(),
+        ];
+
+        return compact('rentProductos', 'rentCategorias', 'abc', 'resumenAbc');
+    }
+
+    private function getFiscalData(): array
+    {
+        $desde = $this->vtaFechaDesde;
+        $hasta = $this->vtaFechaHasta;
+
+        $ventasFacturadas = Venta::where('estado_venta', 'Completada')
+            ->whereNotNull('cliente_nit')
+            ->where('cliente_nit', '!=', '')
+            ->when($desde, fn ($q) => $q->whereDate('created_at', '>=', $desde))
+            ->when($hasta, fn ($q) => $q->whereDate('created_at', '<=', $hasta))
+            ->orderBy('created_at')
+            ->get();
+
+        $totalFacturado = $ventasFacturadas->sum('total');
+        $countFacturado = $ventasFacturadas->count();
+
+        $sinNit = Venta::where('estado_venta', 'Completada')
+            ->when($desde, fn ($q) => $q->whereDate('created_at', '>=', $desde))
+            ->when($hasta, fn ($q) => $q->whereDate('created_at', '<=', $hasta))
+            ->where(function ($q) {
+                $q->whereNull('cliente_nit')->orWhere('cliente_nit', '');
+            })
+            ->count();
+
+        return compact('ventasFacturadas', 'totalFacturado', 'countFacturado', 'sinNit');
+    }
+
+    public function exportarFiscalCsv()
+    {
+        $data = $this->getFiscalData();
+        $ventas = $data['ventasFacturadas'];
+
+        $filename = 'libro-ventas-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($ventas) {
+            $out = fopen('php://output', 'w');
+            // BOM para que Excel lea acentos correctamente
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, ['Fecha', 'Codigo', 'Cliente', 'NIT/CI', 'Metodo Pago', 'Total (Bs.)']);
+            foreach ($ventas as $v) {
+                fputcsv($out, [
+                    $v->created_at->format('d/m/Y H:i'),
+                    $v->codigo_pedido,
+                    $v->cliente_nombre,
+                    $v->cliente_nit,
+                    ucfirst($v->metodo_pago),
+                    number_format($v->total, 2, '.', ''),
+                ]);
+            }
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function render()
@@ -287,6 +545,22 @@ class Index extends Component
 
         if ($this->activeTab === 'dashboard') {
             $data = array_merge($data, $this->getDashboardData());
+        }
+
+        if ($this->activeTab === 'clientes') {
+            $data = array_merge($data, $this->getClientesData());
+        }
+
+        if ($this->activeTab === 'proveedores') {
+            $data = array_merge($data, $this->getProveedoresData());
+        }
+
+        if ($this->activeTab === 'rentabilidad') {
+            $data = array_merge($data, $this->getRentabilidadData());
+        }
+
+        if ($this->activeTab === 'fiscal') {
+            $data = array_merge($data, $this->getFiscalData());
         }
 
         return view('livewire.reportes.index', $data);

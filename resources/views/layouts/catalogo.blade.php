@@ -40,11 +40,30 @@
             get count() { return this.items.reduce((s, i) => s + i.cantidad, 0); },
 
             buildWaUrl(phone) {
-                let m = `Hola *${CW_TIENDA_NOMBRE}*, quiero realizar el siguiente pedido:\n\n`;
-                this.items.forEach(i => {
-                    m += `• ${i.nombre} x${i.cantidad} = Bs. ${(parseFloat(i.precio)*i.cantidad).toFixed(2)}\n`;
+                const fecha = new Date().toLocaleString('es-BO', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
                 });
-                m += `\n*Total: Bs. ${this.total.toFixed(2)}*`;
+
+                let m = `🛒 *NUEVO PEDIDO*\n`;
+                m += `🏪 ${CW_TIENDA_NOMBRE}\n`;
+                m += `🗓️ ${fecha}\n\n`;
+                m += `¡Hola! Quiero realizar el siguiente pedido:\n\n`;
+
+                this.items.forEach((i, idx) => {
+                    const precio   = parseFloat(i.precio);
+                    const subtotal = (precio * i.cantidad).toFixed(2);
+                    m += `${idx + 1}. *${i.nombre}*\n`;
+                    m += `    ${i.cantidad} x Bs. ${precio.toFixed(2)}  =  Bs. ${subtotal}\n`;
+                });
+
+                m += `\n━━━━━━━━━━━━━━━\n`;
+                m += `📦 Artículos: ${this.count}  (${this.items.length} producto${this.items.length !== 1 ? 's' : ''})\n`;
+                m += `💰 *TOTAL: Bs. ${this.total.toFixed(2)}*\n`;
+                m += `━━━━━━━━━━━━━━━\n\n`;
+                m += `📌 _El precio es referencial; el vendedor confirmará disponibilidad, el total final y coordinará el pago (efectivo / QR) y la entrega._\n\n`;
+                m += `¡Gracias! Quedo atento(a) a su respuesta. 🙌`;
+
                 return `https://wa.me/${(phone||'').replace(/[^0-9]/g,'')}?text=${encodeURIComponent(m)}`;
             },
 
